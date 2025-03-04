@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Каталог</title>
+</head>
+<body>
+    <h1>Приветствуем в нашем магазине!</h1>
+    <h2>Категории</h2>
+    <ul>
+        {% for category in categories %}
+        <li>
+            <a href="/category/{{ category.id }}">
+                <img src="/media/{{ category.image }}" alt="{{ category.name }}" width="100">
+                <p>{{ category.name }}</p>
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

@@ -1,0 +1,32 @@
+.env
+
+*.rdb
+
+# Виртуальное окружение
+venv/
+.env/
+
+# Файлы IDE
+.idea/
+.vscode/
+
+# Файлы Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+*pyc
+# Статические файлы (если они собираются автоматически)
+staticfiles/
+
+
+# Локальные настройки
+local_settings.py
+help.txt
+# Логи
+*.log
+
+# Docker
+docker-compose.override.yml
