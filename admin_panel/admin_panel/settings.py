@@ -1,15 +1,12 @@
 from pathlib import Path
-from decouple import config, Csv  # Используем python-decouple
+from decouple import config, Csv 
 
-# Базовая директория
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Безопасность
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
 
-# Приложения
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -20,15 +17,9 @@ INSTALLED_APPS = [
     # Локальные приложения
     'apps.core.apps.CoreConfig',
     'apps.cart.apps.CartConfig',
-    'apps.logger.apps.LoggerConfig',
-    'apps.notifications.apps.NotificationsConfig',
     'apps.orders.apps.OrdersConfig',
     'apps.payments.apps.PaymentsConfig',
     'apps.products.apps.ProductsConfig',
-    # TODO: Раскомментируйте, когда будете готовы
-    # 'apps.tags.apps.TagsConfig',
-    # 'apps.discount.apps.DiscountsConfig',
-    # 'apps.reviews.apps.ReviewsConfig',
 ]
 
 MIDDLEWARE = [
@@ -97,10 +88,9 @@ USE_I18N = True
 USE_TZ = True
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR.parent / 'media'  # Папка media на уровне проекта
-
+MEDIA_ROOT = BASE_DIR.parent / 'media' 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'static'
+STATIC_ROOT = BASE_DIR / 'media' / 'static'
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
