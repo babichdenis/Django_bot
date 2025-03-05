@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Хлебные крошки -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            {% for item in breadcrumbs %}
+                {% if loop.last %}
+                    <li class="breadcrumb-item active" aria-current="page">{{ item.name }}</li>
+                {% else %}
+                    <li class="breadcrumb-item"><a href="{{ item.url }}">{{ item.name }}</a></li>
+                {% endif %}
+            {% endfor %}
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-6">
+            <img src="/media/{{ product.image }}" class="img-fluid" alt="{{ product.name }}">
+        </div>
+        <div class="col-md-6">
+            <h1>{{ product.name }}</h1>
+            <p class="text-muted">{{ product.description }}</p>
+            <p class="availability {% if product.available %}available{% else %}unavailable{% endif %}">
+                {% if product.available %}
+                    В наличии
+                {% else %}
+                    Нет в наличии
+                {% endif %}
+            </p>
+            <h3>{{ product.price }} руб.</h3>
+            <div class="quantity-control">
+                <button class="btn btn-outline-secondary" id="decrease-quantity">-</button>
+                <input type="number" id="quantity" value="1" min="1" class="form-control text-center" style="width: 70px;">
+                <button class="btn btn-outline-secondary" id="increase-quantity">+</button>
+            </div>
+            {% if product.available %}
+                <button class="btn btn-primary add-to-cart-btn" 
+                        id="add-to-cart" 
+                        data-name="{{ product.name }}" 
+                        data-price="{{ product.price }}" 
+                        data-product-id="{{ product.id }}" 
+                        data-telegram-id="{{ telegram_id }}"> <!-- Используем telegram_id из контекста -->
+                    Добавить в корзину
+                </button>
+            {% else %}
+                <button class="btn btn-secondary add-to-cart-btn" disabled>Товар недоступен</button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

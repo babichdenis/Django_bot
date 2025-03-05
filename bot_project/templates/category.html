@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ category.name }}{% endblock %}
+
+{% block content %}
+<!-- Хлебные крошки -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        {% for crumb in breadcrumbs %}
+        <li class="breadcrumb-item">
+            <a href="{{ crumb.url }}">{{ crumb.name }}</a>
+        </li>
+        {% endfor %}
+    </ol>
+</nav>
+
+<!-- Описание категории -->
+<div class="mb-4">
+    <h1>{{ category.name }}</h1>
+    <p class="text-muted">{{ category.description }}</p>
+</div>
+
+<!-- Список товаров -->
+<div class="row">
+    {% for product in products %}
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <img src="/media/{{ product.image }}" class="card-img-top" alt="{{ product.name }}">
+            <div class="card-body">
+                <h5 class="card-title">{{ product.name }}</h5>
+                <p class="card-text">{{ product.description|truncate(100) }}</p>
+                <p class="card-text"><strong>{{ product.price }} руб.</strong></p>
+                <a href="/product/{{ product.id }}" class="btn btn-primary">Подробнее</a>
+                <!-- Кнопка "Добавить в корзину" -->
+                <button class="add-to-cart btn btn-success" 
+                        data-name="{{ product.name }}" 
+                        data-price="{{ product.price }}" 
+                        data-id="{{ product.id }}">
+                    Добавить в корзину
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Пагинация -->
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        {% if has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page - 1 }}" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        {% endif %}
+
+        <li class="page-item active">
+            <a class="page-link" href="#">{{ page }}</a>
+        </li>
+
+        {% if has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page + 1 }}" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endblock %}

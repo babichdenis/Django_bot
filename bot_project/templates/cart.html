@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Корзина{% endblock %}
+
+{% block content %}
+<h1>Ваша корзина</h1>
+<div class="cart-items">
+    {% for item in cart_items %}
+    <div class="cart-item">
+        <div class="row">
+            <div class="col-md-2">
+                <img src="/media/{{ item.product.image }}" alt="{{ item.product.name }}" class="img-fluid">
+            </div>
+            <div class="col-md-6">
+                <h4>{{ item.product.name }}</h4>
+                <p class="text-muted">{{ item.product.description }}</p>
+            </div>
+            <div class="col-md-2">
+                <div class="quantity-control">
+                    <button class="btn btn-outline-secondary" onclick="updateQuantity({{ item.id }}, -1)">-</button>
+                    <input type="number" id="quantity-{{ item.id }}" value="{{ item.quantity }}" min="1" class="form-control text-center">
+                    <button class="btn btn-outline-secondary" onclick="updateQuantity({{ item.id }}, 1)">+</button>
+                </div>
+            </div>
+            <div class="col-md-2 text-end">
+                <p class="total-price">{{ item.subtotal }} руб.</p>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-md-12">
+                <button class="btn btn-danger" onclick="removeItem({{ item.id }})">Удалить</button>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-center">Ваша корзина пуста.</p>
+    {% endfor %}
+</div>
+<div class="row mt-4">
+    <div class="col-md-12 text-end">
+        <h3 class="total-price">Итого: {{ cart_total }} руб.</h3>
+    </div>
+</div>
+<div class="row mt-4">
+    <div class="col-md-12 text-end">
+        <a href="/checkout" class="btn btn-primary btn-lg">Оформить заказ</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function updateQuantity(itemId, delta) {
+        const quantityInput = document.getElementById(`quantity-${itemId}`);
+        let newQuantity = parseInt(quantityInput.value) + delta;
+        if (newQuantity < 1) newQuantity = 1;
+        quantityInput.value = newQuantity;
+
+        fetch(`/update-cart-item/${itemId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: JSON.stringify({
+                quantity: newQuantity,
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Ошибка при обновлении количества.');
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+        });
+    }
+
+    function removeItem(itemId) {
+        if (confirm('Вы уверены, что хотите удалить этот товар?')) {
+            fetch(`/remove-cart-item/${itemId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Ошибка при удалении товара.');
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+            });
+        }
+    }
+</script>
+{% endblock %}

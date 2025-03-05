@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная страница{% endblock %}
+
+{% block content %}
+<!-- Карусель товаров -->
+<section class="my-4">
+    <div class="container">
+        <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                {% for product in featured_products %}
+                <div class="carousel-item {% if loop.first %}active{% endif %}">
+                    <img src="/media/{{ product.image }}" class="d-block w-100" alt="{{ product.name }}">
+                    <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50">
+                        <h5>{{ product.name }}</h5>
+                        <p>{{ product.price }} руб.</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Предыдущий</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Следующий</span>
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Категории -->
+<section class="my-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Категории</h2>
+        <div class="row">
+            {% for category in categories %}
+            <div class="col-md-4 mb-4">
+                <div class="card category-card">
+                    <img src="/media/{{ category.image }}" class="card-img-top" alt="{{ category.name }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ category.name }}</h5>
+                        <a href="/category/{{ category.id }}" class="btn btn-primary">Смотреть товары</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

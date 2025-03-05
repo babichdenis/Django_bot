@@ -55,18 +55,14 @@ WSGI_APPLICATION = 'admin_panel.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('POSTGRES_DB_NAME', default='postgres'),
-        'USER': config('POSTGRES_USER'),
-        'PASSWORD': config('POSTGRES_PASSWORD'),
-        'HOST': config('POSTGRES_HOST', default='localhost'),
-        'PORT': config('POSTGRES_PORT', default='5432'),
+        'NAME': config('DB_NAME', default='postgres'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='5432'),
     }
 }
-print("POSTGRES_DB_NAME:", config('POSTGRES_DB'))
-print("POSTGRES_USER:", config('POSTGRES_USER'))
-print("POSTGRES_PASSWORD:", config('POSTGRES_PASSWORD'))
-print("POSTGRES_HOST:", config('POSTGRES_HOST'))
-print("POSTGRES_PORT:", config('POSTGRES_PORT'))
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',

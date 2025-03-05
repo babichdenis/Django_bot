@@ -1,0 +1,60 @@
+<header class="bg-light py-3 sticky-top">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <!-- Логотип -->
+            <a href="/" class="text-decoration-none">
+                <img src="/media/logo.png" alt="Логотип" width="50">
+            </a>
+
+            <!-- Кнопка бургер-меню -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Иконка Корзины -->
+            <a class="text-decoration-none text-dark" data-bs-toggle="modal" data-bs-target="#cart" title="Корзина">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="total-count" style="margin-left: 5px;">0</span>  <!-- Количество товаров в корзине -->
+            </a>
+        </div>
+
+        <!-- Навигация -->
+        <nav class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto mb-0">
+                <!-- Иконка Личного кабинета -->
+                <li class="nav-item">
+                    <a href="/profile" class="nav-link text-dark" title="Личный кабинет">
+                        <i class="fas fa-user"></i> Личный кабинет
+                    </a>
+                </li>
+
+                <!-- Иконка Настроек -->
+                <li class="nav-item">
+                    <a href="/settings" class="nav-link text-dark" title="Настройки">
+                        <i class="fas fa-cog"></i> Настройки
+                    </a>
+                </li>
+
+                <!-- Иконка Выхода -->
+                <li class="nav-item">
+                    <a href="/logout" class="nav-link text-dark" title="Выход">
+                        <i class="fas fa-sign-out-alt"></i> Выход
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<!-- Подключение Font Awesome для иконок -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<!-- Подключение Bootstrap CSS и JS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+<style>
+    /* Убедитесь, что бургер-меню видимо */
+    .navbar-toggler {
+        border: none; /* Убираем рамку вокруг кнопки */
+    }
+</style>
