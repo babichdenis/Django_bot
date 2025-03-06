@@ -235,7 +235,8 @@ async def handle_cart_page(request):
                 "cart_items": [],
                 "total_price": 0,
                 "telegram_id": None,
-                "category": None  # Add category = None
+                "category": None,
+                "error_message": "Не указан telegram_id"
             })
 
         telegram_id = int(telegram_id)
@@ -243,11 +244,25 @@ async def handle_cart_page(request):
         cart_items = await get_cart_items(telegram_id)
         total_price = sum(item['total'] for item in cart_items)
 
+        # Преобразуем данные для шаблона
+        cart_items_json = [
+            {
+                "id": item['id'],
+                "product_id": item['product_id'],
+                "name": item['name'],
+                "price": item['price'],
+                "image": item['main_image'],  # Передаем URL изображения
+                "quantity": item['quantity'],
+                "total": item['total']
+            }
+            for item in cart_items
+        ]
+
         return aioj.render_template("cart.html", request, {
-            "cart_items": cart_items,
+            "cart_items": cart_items_json,
             "total_price": total_price,
             "telegram_id": telegram_id,
-            "category": None  # Add category = None
+            "category": None
         })
     except Exception as e:
         # Обработка ошибок
@@ -255,6 +270,6 @@ async def handle_cart_page(request):
             "cart_items": [],
             "total_price": 0,
             "telegram_id": None,
-            "category": None,  # Add category = None
+            "category": None,
             "error_message": str(e)  # Передаем сообщение об ошибке в шаблон
         })

@@ -6,24 +6,37 @@
 <!-- Карусель товаров -->
 <section class="my-4">
     <div class="container">
-        <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
+        <div id="productCarousel" class="carousel slide" data-bs-ride="carousel" style="border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
             <div class="carousel-inner">
                 {% for product in featured_products %}
                 <div class="carousel-item {% if loop.first %}active{% endif %}">
-                    <img src="/media/{{ product.image }}" class="d-block w-100" alt="{{ product.name }}">
-                    <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-50">
-                        <h5>{{ product.name }}</h5>
-                        <p>{{ product.price }} руб.</p>
-                    </div>
+                    <a href="/product/{{ product.id }}" class="d-block text-decoration-none">
+                        <!-- Обертка изображения с фиксированной высотой -->
+                        <div class="carousel-image-container" style="height: 60vh; max-height: 400px; overflow: hidden;">
+                            <img src="/media/{{ product.image }}" 
+                                 class="d-block w-100 h-100" 
+                                 alt="{{ product.name }}"
+                                 style="object-fit: cover; object-position: center;">
+                        </div>
+                        
+                        <!-- Обновленные подписи с адаптивным текстом -->
+                        <div class="carousel-caption d-flex flex-column justify-content-center text-start p-3" 
+                             style="background: linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.4)); left: 0; right: 0; bottom: 0;">
+                            <h3 class="mb-2 fs-4 fs-md-3">{{ product.name }}</h3>
+                            <p class="mb-0 fs-5 fs-md-4 fw-bold text-warning">{{ product.price }} ₽</p>
+                        </div>
+                    </a>
                 </div>
                 {% endfor %}
             </div>
-            <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            
+            <!-- Контролы с улучшенной видимостью -->
+            <button class="carousel-control-prev" type="button" data-bs-target="#productCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true" style="filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));"></span>
                 <span class="visually-hidden">Предыдущий</span>
             </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <button class="carousel-control-next" type="button" data-bs-target="#productCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true" style="filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));"></span>
                 <span class="visually-hidden">Следующий</span>
             </button>
         </div>
@@ -32,21 +45,176 @@
 
 <!-- Категории -->
 <section class="my-5">
-    <div class="container">
-        <h2 class="text-center mb-4">Категории</h2>
-        <div class="row">
+    <div class="container-fluid px-0">
+        <h2 class="text-center mb-5 display-4 fw-light">Исследуйте категории</h2>
+        <div class="row g-0">
             {% for category in categories %}
-            <div class="col-md-4 mb-4">
-                <div class="card category-card">
-                    <img src="/media/{{ category.image }}" class="card-img-top" alt="{{ category.name }}">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ category.name }}</h5>
-                        <a href="/category/{{ category.id }}" class="btn btn-primary">Смотреть товары</a>
+            <div class="col-12 mb-4">
+                <a href="/category/{{ category.id }}" class="category-card-link text-decoration-none">
+                    <div class="category-card">
+                        <div class="image-container">
+                            <img src="/media/{{ category.image }}" 
+                                 class="category-image" 
+                                 alt="{{ category.name }}"
+                                 loading="lazy">
+                        </div>
+                        <div class="content-overlay">
+                            <div class="text-content">
+                                <h3 class="category-title">{{ category.name }}</h3>
+                                <div class="hover-content">
+                                    
+                                    <span class="cta-button">Смотреть товары →</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                </a>
             </div>
             {% endfor %}
         </div>
     </div>
 </section>
+
+<style>
+.category-card {
+    position: relative;
+    height: 30vh;
+    min-height: 100px;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.image-container {
+    position: absolute;
+    width: 70%;
+    height: 100%;
+    clip-path: polygon(0 0, 95% 0, 70% 100%, 0 100%);
+}
+
+.category-image {
+    width: 50%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1);
+    transition: transform 0.4s ease;
+}
+
+.content-overlay {
+    position: absolute;
+    right: 0;
+    width: 50%;
+    height: 100%;
+    padding: 3rem;
+    background: linear-gradient(
+        to left, 
+        rgba(255,255,255,0.98) 60%, 
+        rgba(255,255,255,0.7)
+    );
+    display: flex;
+    align-items: center;
+}
+
+.text-content {
+    transform: translateX(20%);
+    opacity: 0;
+    transition: all 0.4s ease 0.1s;
+}
+
+.category-title {
+    font-size: 2.5rem;
+    font-weight: 300;
+    margin-bottom: 1.5rem;
+    color: #2c3e50;
+    position: relative;
+    display: inline-block;
+}
+
+.category-title:after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 40px;
+    height: 2px;
+    background: #e74c3c;
+    transition: width 0.3s ease;
+}
+
+.hover-content {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+}
+
+.category-description {
+    color: #7f8c8d;
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+}
+
+.cta-button {
+    display: inline-block;
+    color: #e74c3c;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+    transition: border-color 0.3s ease;
+}
+
+/* Hover Effects */
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 25px 40px rgba(0,0,0,0.1);
+}
+
+.category-card:hover .category-image {
+    transform: scale(1.05);
+}
+
+.category-card:hover .text-content {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.category-card:hover .hover-content {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.category-card:hover .category-title:after {
+    width: 80px;
+}
+
+.cta-button:hover {
+    border-color: #e74c3c;
+}
+
+/* Mobile Adaptation */
+@media (max-width: 768px) {
+    .image-container {
+        width: 100%;
+        clip-path: none;
+    }
+    
+    .content-overlay {
+        width: 50%;
+        background: rgba(255,255,255,0.9);
+        justify-content: center;
+        text-align: center;
+    }
+    
+    .text-content {
+        transform: none;
+        opacity: 1;
+    }
+    
+    .category-title {
+        font-size: 2rem;
+    }
+    
+    .hover-content {
+        opacity: 1;
+        transform: none;
+    }
+}
+</style>
 {% endblock %}

@@ -23,7 +23,7 @@ async def get_cart_item(telegram_id: int, product_id: int):
 async def get_cart_items(telegram_id: int):
     """Получить все элементы корзины для данного telegram_id."""
     query = """
-        SELECT cc.id, cc.product_id, p.name, p.price, cc.quantity, (p.price * cc.quantity) AS total
+        SELECT cc.id, cc.product_id, p.name, p.price, p.main_image, cc.quantity, (p.price * cc.quantity) AS total
         FROM cart_cartitem cc
         JOIN products_product p ON cc.product_id = p.id
         JOIN core_telegramuser u ON cc.user_id = u.id

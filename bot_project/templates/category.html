@@ -3,69 +3,385 @@
 {% block title %}{{ category.name }}{% endblock %}
 
 {% block content %}
-<!-- Хлебные крошки -->
-<nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-        {% for crumb in breadcrumbs %}
-        <li class="breadcrumb-item">
-            <a href="{{ crumb.url }}">{{ crumb.name }}</a>
-        </li>
-        {% endfor %}
-    </ol>
-</nav>
+<!-- Header -->
+<header class="category-header">
+    <div class="container">
+        <!-- Хлебные крошки -->
+        <nav aria-label="breadcrumb" class="breadcrumb-container">
+            <ol class="breadcrumb">
+                {% for crumb in breadcrumbs %}
+                <li class="breadcrumb-item">
+                    <a href="{{ crumb.url }}" class="breadcrumb-link">{{ crumb.name }}</a>
+                </li>
+                {% endfor %}
+            </ol>
+        </nav>
 
-<!-- Описание категории -->
-<div class="mb-4">
-    <h1>{{ category.name }}</h1>
-    <p class="text-muted">{{ category.description }}</p>
-</div>
-
-<!-- Список товаров -->
-<div class="row">
-    {% for product in products %}
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <img src="/media/{{ product.image }}" class="card-img-top" alt="{{ product.name }}">
-            <div class="card-body">
-                <h5 class="card-title">{{ product.name }}</h5>
-                <p class="card-text">{{ product.description|truncate(100) }}</p>
-                <p class="card-text"><strong>{{ product.price }} руб.</strong></p>
-                <a href="/product/{{ product.id }}" class="btn btn-primary">Подробнее</a>
-                <!-- Кнопка "Добавить в корзину" -->
-                <button class="add-to-cart btn btn-success" 
-                        data-name="{{ product.name }}" 
-                        data-price="{{ product.price }}" 
-                        data-id="{{ product.id }}">
-                    Добавить в корзину
-                </button>
-            </div>
+        <!-- Заголовок и описание -->
+        <div class="header-content">
+            <h1 class="category-title">{{ category.name }}</h1>
+            {% if category.description %}
+            <p class="category-description">{{ category.description }}</p>
+            {% endif %}
         </div>
     </div>
-    {% endfor %}
-</div>
+</header>
 
-<!-- Пагинация -->
-<nav aria-label="Page navigation">
-    <ul class="pagination justify-content-center">
-        {% if has_previous %}
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page - 1 }}" aria-label="Previous">
-                <span aria-hidden="true">&laquo;</span>
+<!-- Основной контент -->
+<main class="category-container container">
+    <!-- Вложенные категории -->
+    {% if subcategories %}
+    <section class="subcategories-grid">
+        {% for subcategory in subcategories %}
+        <a href="/category/{{ subcategory.id }}" class="subcategory-card">
+            <div class="image-wrapper">
+                <img src="/media/{{ subcategory.image }}" 
+                     alt="{{ subcategory.name }}" 
+                     class="subcategory-image"
+                     loading="lazy">
+            </div>
+            <div class="subcategory-info">
+                <h3 class="subcategory-name">{{ subcategory.name }}</h3>
+                <span class="subcategory-cta">Смотреть →</span>
+            </div>
+        </a>
+        {% endfor %}
+    </section>
+    {% endif %}
+
+    <!-- Галерея товаров -->
+    <section class="products-grid">
+        {% for product in products %}
+        <article class="product-card">
+            <div class="product-image-container">
+                <img src="/media/{{ product.image }}" 
+                     alt="{{ product.name }}" 
+                     class="product-image"
+                     loading="lazy">
+                <button class="add-to-cart-btn" 
+                        data-id="{{ product.id }}"
+                        aria-label="Добавить в корзину">
+                    <svg class="cart-icon" viewBox="0 0 24 24">
+                        <path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM17 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM21 4H4l-1 3h16l-1 7h-12c0-.6-.4-1-1-1H2v2h1c.6 0 1 .4 1 1v7h14v-7h2c.6 0 1-.4 1-1V5c0-.6-.4-1-1-1z"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="product-details">
+                <h3 class="product-name">{{ product.name }}</h3>
+                <p class="product-excerpt">{{ product.description|truncate(80) }}</p>
+                <div class="product-footer">
+                    <span class="product-price">{{ product.price }} ₽</span>
+                    <a href="/product/{{ product.id }}" class="details-link">
+                        Подробнее
+                        <svg class="arrow-icon" viewBox="0 0 24 24">
+                            <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </article>
+        {% endfor %}
+    </section>
+
+    <!-- Пагинация -->
+    <nav class="pagination-container">
+        <div class="pagination-inner">
+            {% if has_previous %}
+            <a href="?page={{ page - 1 }}" class="page-arrow prev" aria-label="Предыдущая">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/>
+                </svg>
             </a>
-        </li>
-        {% endif %}
+            {% endif %}
 
-        <li class="page-item active">
-            <a class="page-link" href="#">{{ page }}</a>
-        </li>
+            <span class="current-page">Страница {{ page }}</span>
 
-        {% if has_next %}
-        <li class="page-item">
-            <a class="page-link" href="?page={{ page + 1 }}" aria-label="Next">
-                <span aria-hidden="true">&raquo;</span>
+            {% if has_next %}
+            <a href="?page={{ page + 1 }}" class="page-arrow next" aria-label="Следующая">
+                <svg viewBox="0 0 24 24">
+                    <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+                </svg>
             </a>
-        </li>
-        {% endif %}
-    </ul>
-</nav>
+            {% endif %}
+        </div>
+    </nav>
+</main>
+
+<style>
+/* Общие стили */
+.category-header {
+    background: #f8f9fa;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.category-container {
+    padding: 2rem 0;
+}
+
+/* Хлебные крошки */
+.breadcrumb-container {
+    margin-bottom: 1rem;
+}
+
+.breadcrumb {
+    padding: 0;
+    background: transparent;
+}
+
+.breadcrumb-link {
+    color: #6b7280;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.breadcrumb-link:hover {
+    color: #3b82f6;
+}
+
+/* Заголовок */
+.header-content {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.category-title {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.category-description {
+    color: #6b7280;
+    font-size: 1.1rem;
+}
+
+/* Вложенные категории */
+.subcategories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.subcategory-card {
+    display: flex;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.subcategory-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 12px rgba(0,0,0,0.1);
+}
+
+.image-wrapper {
+    width: 40%;
+    position: relative;
+}
+
+.subcategory-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.subcategory-info {
+    padding: 1.5rem;
+    flex: 1;
+}
+
+.subcategory-name {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.subcategory-cta {
+    color: #3b82f6;
+    font-weight: 500;
+}
+
+/* Галерея товаров */
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.product-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+}
+
+.product-image-container {
+    position: relative;
+    padding-top: 70%;
+    overflow: hidden;
+}
+
+.product-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.add-to-cart-btn {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    background: rgba(255,255,255,0.9);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.cart-icon {
+    width: 20px;
+    height: 20px;
+    fill: #3b82f6;
+}
+
+.add-to-cart-btn:hover {
+    background: white;
+    transform: scale(1.1);
+}
+
+.product-details {
+    padding: 1.5rem;
+}
+
+.product-name {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.product-excerpt {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.product-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.product-price {
+    font-weight: 700;
+    color: #3b82f6;
+}
+
+.details-link {
+    display: flex;
+    align-items: center;
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.arrow-icon {
+    width: 18px;
+    height: 18px;
+    margin-left: 0.5rem;
+    transition: transform 0.3s ease;
+}
+
+.details-link:hover .arrow-icon {
+    transform: translateX(3px);
+}
+
+/* Пагинация */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.pagination-inner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.page-arrow {
+    display: flex;
+    padding: 0.5rem;
+    border-radius: 50%;
+    background: #f3f4f6;
+    transition: all 0.3s ease;
+}
+
+.page-arrow:hover {
+    background: #e5e7eb;
+}
+
+.page-arrow svg {
+    width: 24px;
+    height: 24px;
+    fill: #3b82f6;
+}
+
+.current-page {
+    color: #6b7280;
+    font-weight: 500;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .products-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .subcategories-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .category-title {
+        font-size: 1.8rem;
+    }
+    
+    .category-description {
+        font-size: 1rem;
+    }
+}
+</style>
+
+<script>
+// Инициализация корзины
+document.querySelectorAll('.add-to-cart-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const productId = this.dataset.id;
+        // Логика добавления в корзину
+        console.log(`Добавлен товар ID: ${productId}`);
+        // Анимация кнопки
+        this.classList.add('added');
+        setTimeout(() => this.classList.remove('added'), 1000);
+    });
+});
+</script>
 {% endblock %}
