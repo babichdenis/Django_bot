@@ -9,7 +9,8 @@ from handlers.web_handler_cart import (
     handle_add_to_cart,
     handle_remove_from_cart,
     handle_update_cart_item,
-    handle_clear_cart
+    handle_clear_cart,
+    handle_cart_page
 )
 
 def setup_web_routes(app: web.Application, media_dir: str):
@@ -18,7 +19,7 @@ def setup_web_routes(app: web.Application, media_dir: str):
         web.get("/", handle_index),
         web.get("/category/{category_id}", handle_category),
         web.get("/product/{product_id}", handle_product),
-        # web.get("/cart", handle_cart),
+        web.get("/cart", handle_cart_page),
         web.get("/get-cart", handle_get_cart),
         web.post("/add-to-cart", handle_add_to_cart),
         web.post("/remove-from-cart", handle_remove_from_cart),

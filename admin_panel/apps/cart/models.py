@@ -1,45 +1,41 @@
 from django.db import models
-from django.core.exceptions import ValidationError
-
-from apps.orders.models import Order, OrderItem
-from apps.core.models import BaseModel
+from apps.core.models import BaseModel, TelegramUser
 from apps.products.models import Product
-from apps.core.models import TelegramUser
 from apps.core.validators import validate_positive_integer
 
 
-class Cart(BaseModel):
-    user = models.OneToOneField(
+class CartItem(BaseModel):
+    user = models.ForeignKey(
         TelegramUser,
         on_delete=models.CASCADE,
-        related_name='cart',
-        verbose_name=('Пользователь')
-    )
-
-    class Meta(BaseModel.Meta):
-        verbose_name = ('Корзина')
-        verbose_name_plural = ('Корзины')
-
-
-class CartItem(BaseModel):
-    cart = models.ForeignKey(
-        Cart,
-        on_delete=models.CASCADE,
-        related_name='items',
-        verbose_name=('Корзина')
+        related_name='cart_items',
+        verbose_name='Пользователь'
     )
     product = models.ForeignKey(
         Product,
         on_delete=models.CASCADE,
-        verbose_name=('Товар')
+        verbose_name='Товар'
     )
     quantity = models.PositiveIntegerField(
         default=1,
-        validators=[validate_positive_integer],
-        verbose_name=('Количество')
+        verbose_name='Количество'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата создания'
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Дата обновления'
     )
 
-    class Meta(BaseModel.Meta):
-        verbose_name = ('Элемент корзины')
-        verbose_name_plural = ('Элементы корзины')
-        unique_together = ('cart', 'product')
+    def __str__(self):
+        return f"{self.product.name} x{self.quantity} для {self.user.telegram_id}"
+
+    @property
+    def total_cost(self):
+        return self.quantity * self.product.price
+
+    class Meta:
+        verbose_name = 'Элемент корзины'
+        verbose_name_plural = 'Элементы корзины'

@@ -3,103 +3,223 @@
 {% block title %}Корзина{% endblock %}
 
 {% block content %}
-<h1>Ваша корзина</h1>
-<div class="cart-items">
-    {% for item in cart_items %}
-    <div class="cart-item">
-        <div class="row">
-            <div class="col-md-2">
-                <img src="/media/{{ item.product.image }}" alt="{{ item.product.name }}" class="img-fluid">
-            </div>
-            <div class="col-md-6">
-                <h4>{{ item.product.name }}</h4>
-                <p class="text-muted">{{ item.product.description }}</p>
-            </div>
-            <div class="col-md-2">
-                <div class="quantity-control">
-                    <button class="btn btn-outline-secondary" onclick="updateQuantity({{ item.id }}, -1)">-</button>
-                    <input type="number" id="quantity-{{ item.id }}" value="{{ item.quantity }}" min="1" class="form-control text-center">
-                    <button class="btn btn-outline-secondary" onclick="updateQuantity({{ item.id }}, 1)">+</button>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .cart-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .cart-item {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+        .cart-item img {
+            width: 100px;
+            height: 100px;
+            margin-right: 20px;
+        }
+        .cart-item-details {
+            flex-grow: 1;
+        }
+        .cart-item-name {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .cart-item-price {
+            color: #555;
+        }
+        .cart-item-quantity {
+            display: flex;
+            align-items: center;
+        }
+        .cart-item-quantity input {
+            width: 50px;
+            text-align: center;
+            margin: 0 10px;
+        }
+        .cart-item-total {
+            font-weight: bold;
+        }
+        .cart-summary {
+            margin-top: 20px;
+            text-align: right;
+        }
+        .cart-summary .total-price {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .btn {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #218838;
+        }
+        .btn-remove {
+            background-color: #dc3545;
+        }
+        .btn-remove:hover {
+            background-color: #c82333;
+        }
+    </style>
+    <div class="cart-container">
+        <h1>Ваша корзина</h1>
+        {% if cart_items %}
+            {% for item in cart_items %}
+                <div class="cart-item">
+                    <img src="{{ item.image }}" alt="{{ item.name }}">
+                    <div class="cart-item-details">
+                        <div class="cart-item-name">{{ item.name }}</div>
+                        <div class="cart-item-price">{{ item.price }} ₽ за шт.</div>
+                        <div class="cart-item-quantity">
+                            <button class="btn minus-btn" data-product-id="{{ item.product_id }}">-</button>
+                            <input type="text" value="{{ item.quantity }}" readonly>
+                            <button class="btn plus-btn" data-product-id="{{ item.product_id }}">+</button>
+                        </div>
+                        <div class="cart-item-total">Итого: {{ item.total }} ₽</div>
+                    </div>
+                    <button class="btn btn-remove remove-item" data-product-id="{{ item.product_id }}">Удалить</button>
                 </div>
+            {% endfor %}
+            <div class="cart-summary">
+                <div class="total-price">Общая стоимость: {{ total_price }} ₽</div>
+                <button class="btn clear-cart-btn">Очистить корзину</button>
+                <button class="btn" onclick="checkout()">Оформить заказ</button>
             </div>
-            <div class="col-md-2 text-end">
-                <p class="total-price">{{ item.subtotal }} руб.</p>
-            </div>
-        </div>
-        <div class="row mt-2">
-            <div class="col-md-12">
-                <button class="btn btn-danger" onclick="removeItem({{ item.id }})">Удалить</button>
-            </div>
-        </div>
+        {% else %}
+            <p>Ваша корзина пуста.</p>
+        {% endif %}
     </div>
-    {% empty %}
-    <p class="text-center">Ваша корзина пуста.</p>
-    {% endfor %}
-</div>
-<div class="row mt-4">
-    <div class="col-md-12 text-end">
-        <h3 class="total-price">Итого: {{ cart_total }} руб.</h3>
-    </div>
-</div>
-<div class="row mt-4">
-    <div class="col-md-12 text-end">
-        <a href="/checkout" class="btn btn-primary btn-lg">Оформить заказ</a>
-    </div>
-</div>
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    function updateQuantity(itemId, delta) {
-        const quantityInput = document.getElementById(`quantity-${itemId}`);
-        let newQuantity = parseInt(quantityInput.value) + delta;
-        if (newQuantity < 1) newQuantity = 1;
-        quantityInput.value = newQuantity;
-
-        fetch(`/update-cart-item/${itemId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}',
-            },
-            body: JSON.stringify({
-                quantity: newQuantity,
-            }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else {
-                alert('Ошибка при обновлении количества.');
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            function getTelegramId() {
+                const telegramId = Telegram.WebApp.initDataUnsafe.user?.id;
+                return telegramId;
             }
-        })
-        .catch(error => {
-            console.error('Ошибка:', error);
-        });
-    }
 
-    function removeItem(itemId) {
-        if (confirm('Вы уверены, что хотите удалить этот товар?')) {
-            fetch(`/remove-cart-item/${itemId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}',
-                },
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
+            function updateQuantity(productId, change) {
+                const telegramId = new URLSearchParams(window.location.search).get('telegram_id');
+                fetch('/update-cart-item', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        telegram_id: telegramId,
+                        product_id: productId,
+                        change: change
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();  // Обновляем страницу после изменения количества
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                });
+            }
+
+            function removeItem(productId) {
+                const telegramId = new URLSearchParams(window.location.search).get('telegram_id');
+                fetch('/remove-from-cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        telegram_id: telegramId,
+                        product_id: productId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();  // Обновляем страницу после удаления товара
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                });
+            }
+
+            function clearCart() {
+                const telegramId = new URLSearchParams(window.location.search).get('telegram_id');
+                fetch('/clear-cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        telegram_id: telegramId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();  // Обновляем страницу после очистки корзины
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                });
+            }
+
+            function checkout() {
+                const telegramId = new URLSearchParams(window.location.search).get('telegram_id');
+                if (telegramId) {
+                    window.location.href = `/checkout?telegram_id=${telegramId}`;
                 } else {
-                    alert('Ошибка при удалении товара.');
+                    alert("Telegram ID не найден!");
                 }
-            })
-            .catch(error => {
-                console.error('Ошибка:', error);
+            }
+
+            // Обработчики кнопок
+            document.querySelectorAll('.plus-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = this.dataset.productId;
+                    updateQuantity(productId, 1);
+                });
             });
-        }
-    }
-</script>
+
+            document.querySelectorAll('.minus-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = this.dataset.productId;
+                    updateQuantity(productId, -1);
+                });
+            });
+
+            document.querySelectorAll('.remove-item').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = this.dataset.productId;
+                    removeItem(productId);
+                });
+            });
+
+            const clearCartBtn = document.querySelector('.clear-cart-btn');
+            if (clearCartBtn) {
+                clearCartBtn.addEventListener('click', function() {
+                    clearCart();
+                });
+            }
+        });
+    </script>
 {% endblock %}

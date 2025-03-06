@@ -3,7 +3,7 @@
 {% block title %}{{ product.name }}{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container product-page">
     <!-- Хлебные крошки -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -17,39 +17,134 @@
         </ol>
     </nav>
 
-    <div class="row">
-        <div class="col-md-6">
-            <img src="/media/{{ product.image }}" class="img-fluid" alt="{{ product.name }}">
+    <div class="product-details">
+        <div class="product-image">
+            <img src="{{ product.main_image }}" class="img-fluid" alt="{{ product.name }}">
         </div>
-        <div class="col-md-6">
+        <div class="product-info">
             <h1>{{ product.name }}</h1>
             <p class="text-muted">{{ product.description }}</p>
-            <p class="availability {% if product.available %}available{% else %}unavailable{% endif %}">
-                {% if product.available %}
-                    В наличии
-                {% else %}
-                    Нет в наличии
-                {% endif %}
-            </p>
-            <h3>{{ product.price }} руб.</h3>
-            <div class="quantity-control">
-                <button class="btn btn-outline-secondary" id="decrease-quantity">-</button>
-                <input type="number" id="quantity" value="1" min="1" class="form-control text-center" style="width: 70px;">
-                <button class="btn btn-outline-secondary" id="increase-quantity">+</button>
-            </div>
+
+            <!-- Availability Badge -->
             {% if product.available %}
-                <button class="btn btn-primary add-to-cart-btn" 
-                        id="add-to-cart" 
-                        data-name="{{ product.name }}" 
-                        data-price="{{ product.price }}" 
-                        data-product-id="{{ product.id }}" 
-                        data-telegram-id="{{ telegram_id }}"> <!-- Используем telegram_id из контекста -->
-                    Добавить в корзину
+                <span class="badge bg-success">В наличии</span>
+            {% else %}
+                <span class="badge bg-danger">Нет в наличии</span>
+            {% endif %}
+
+            <h3>{{ product.price }} руб.</h3>
+
+            <!-- Quantity Control -->
+            <div class="quantity-control">
+                <button class="btn btn-outline-secondary decrease-quantity">-</button>
+                <input type="number" id="quantity" value="1" min="1" class="form-control text-center quantity-input" style="width: 70px;">
+                <button class="btn btn-outline-secondary increase-quantity">+</button>
+            </div>
+
+            <!-- Add to Cart Button -->
+            {% if product.available %}
+                <button class="btn btn-primary add-to-cart-btn"
+                        data-product-id="{{ product.id }}"
+                        data-product-name="{{ product.name }}"
+                        data-product-price="{{ product.price }}">
+                    <i class="bi bi-cart-plus"></i> Добавить в корзину
                 </button>
             {% else %}
                 <button class="btn btn-secondary add-to-cart-btn" disabled>Товар недоступен</button>
             {% endif %}
+
+            <!-- Product Details List -->
+            <ul class="product-specs">
+                <li><strong>SKU:</strong> {{ product.sku }}</li>
+                <li><strong>Вес:</strong> {{ product.weight }} кг</li>
+                {% if product.dimensions %}
+                    <li><strong>Размеры:</strong> {{ product.dimensions }}</li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Additional Product Information Tabs -->
+    <ul class="nav nav-tabs" id="productTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab" aria-controls="description" aria-selected="true">Описание</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="additional-info-tab" data-bs-toggle="tab" data-bs-target="#additional-info" type="button" role="tab" aria-controls="additional-info" aria-selected="false">Дополнительная информация</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="productTabsContent">
+        <div class="tab-pane fade show active" id="description" role="tabpanel" aria-labelledby="description-tab">
+            <p>{{ product.description }}</p>
+        </div>
+        <div class="tab-pane fade" id="additional-info" role="tabpanel" aria-labelledby="additional-info-tab">
+            <ul>
+                <li><strong>Производитель:</strong> Название производителя</li>
+                <li><strong>Страна:</strong> Страна производства</li>
+                <li><strong>Материал:</strong> Материал изготовления</li>
+            </ul>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+            // Функция для получения telegramId
+            function getTelegramId() {
+                const telegramId = Telegram.WebApp.initDataUnsafe.user?.id;
+                return telegramId;
+            }
+
+            const quantityInput = document.getElementById('quantity');
+            const decreaseButton = document.querySelector('.decrease-quantity');
+            const increaseButton = document.querySelector('.increase-quantity');
+            const addToCartButton = document.querySelector('.add-to-cart-btn');
+
+            decreaseButton.addEventListener('click', () => {
+                let value = parseInt(quantityInput.value);
+                if (value > 1) {
+                    quantityInput.value = value - 1;
+                }
+            });
+
+            increaseButton.addEventListener('click', () => {
+                let value = parseInt(quantityInput.value);
+                quantityInput.value = value + 1;
+            });
+
+            addToCartButton.addEventListener('click', () => {
+                const productId = addToCartButton.dataset.productId;
+                const quantity = parseInt(document.getElementById('quantity').value);
+                const telegramId = getTelegramId();
+
+                fetch('/add-to-cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        telegram_id: telegramId,
+                        product_id: productId,
+                        quantity: quantity
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Товар добавлен в корзину!');
+                        // Обновляем количество товаров в шапке
+                         loadCart();
+                    } else {
+                        alert('Ошибка при добавлении товара в корзину.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                });
+            });
+        });
+    </script>
 {% endblock %}

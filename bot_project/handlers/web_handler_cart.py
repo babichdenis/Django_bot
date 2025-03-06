@@ -1,68 +1,54 @@
+# handlers/web_handler_cart.py
 from aiohttp import web
 import aiohttp_jinja2 as aioj
 from database.queries_cart import (
-    get_cart_by_user_id, create_cart, get_cart_item, update_cart_item_quantity,
-    add_cart_item, remove_cart_item, get_cart_items, clear_cart
+    get_cart_item,
+    get_cart_items,
+    add_cart_item,
+    update_cart_item_quantity,
+    remove_cart_item,
+    clear_cart
 )
-from database.queries import get_product
 from utils.logger import logger
 from utils.utils import decimal_to_float
-
 
 async def handle_get_cart(request):
     """Обработчик получения корзины."""
     try:
         logger.info("Начало обработки запроса handle_get_cart")
-        telegram_id = int(request.query.get('telegram_id'))
-        logger.info(f"Получен telegram_id: {telegram_id}")
-
-        if not telegram_id:
+        telegram_id = request.query.get('telegram_id')
+        if telegram_id is None:
             logger.error("Не указан telegram_id")
             return web.json_response({
                 "success": False,
                 "message": "Не указан telegram_id"
             }, status=400)
 
-        # Получаем корзину пользователя
-        logger.info(f"Поиск корзины для пользователя с telegram_id: {telegram_id}")
-        cart = await get_cart_by_user_id(telegram_id)
-        logger.info(f"Результат поиска корзины: {cart}")
-
-        if not cart:
-            logger.info("Корзина не найдена, возвращаем пустую корзину")
-            return web.json_response({
-                "success": True,
-                "total_count": 0,
-                "cart_items": [],
-                "total_price": 0,
-            })
+        telegram_id = int(telegram_id)
+        logger.info(f"Получен telegram_id: {telegram_id}")
 
         # Получаем товары в корзине
-        logger.info(f"Получение товаров в корзине для cart_id: {cart['id']}")
-        cart_items = await get_cart_items(cart['id'])
-        logger.info(f"Товары в корзине: {cart_items}")
-
-        # Преобразуем данные в JSON-совместимый формат
+        cart_items = await get_cart_items(telegram_id)
         cart_items_json = []
+        total_price = 0
+        total_count = 0
+        print(cart_items)
         for item in cart_items:
             cart_items_json.append({
-                "id": int(item["id"]),
+                "id": item["id"],
                 "name": item["name"],
-                "price": float(item["price"]),  # Преобразуем Decimal в float
-                "quantity": int(item["quantity"]),
-                "total": float(item["total"]),  # Преобразуем Decimal в float
+                "price": float(item["price"]),
+                "quantity": item["quantity"],
+                "total": float(item["total"]),
             })
-
-        # Считаем общую стоимость и количество товаров
-        total_price = sum(float(item['total']) for item in cart_items)
-        total_count = sum(int(item['quantity']) for item in cart_items)
-        logger.info(f"Общая стоимость: {total_price}, Общее количество: {total_count}")
+            total_price += float(item["total"])
+            total_count += item["quantity"]
 
         return web.json_response({
             "success": True,
-            "total_count": int(total_count),
+            "total_count": total_count,
             "cart_items": cart_items_json,
-            "total_price": float(total_price),
+            "total_price": total_price,
         })
     except Exception as e:
         logger.error(f"Ошибка в handle_get_cart: {e}", exc_info=True)
@@ -76,57 +62,132 @@ async def handle_add_to_cart(request):
     """Обработчик добавления товара в корзину."""
     try:
         logger.info("Начало обработки запроса handle_add_to_cart")
-        # Получаем данные из тела запроса
         request_data = await request.json()
-        telegram_id = int(request_data.get("telegram_id"))
-        product_id = int(request_data.get("product_id"))
-        quantity = int(request_data.get("quantity", 1))  # По умолчанию 1 товар
-        logger.info(f"Полученные данные: telegram_id={telegram_id}, product_id={product_id}, quantity={quantity}")
+        telegram_id = request_data.get("telegram_id")
+        product_id = request_data.get("product_id")
+        quantity = request_data.get("quantity", 1)
 
-        if not telegram_id or not product_id:
+        if telegram_id is None or product_id is None:
             logger.error("Не указан telegram_id или product_id")
             return web.json_response({
                 "success": False,
                 "message": "Не указан telegram_id или product_id"
             }, status=400)
 
-        # Проверяем существование корзины
-        logger.info(f"Поиск корзины для пользователя с telegram_id: {telegram_id}")
-        cart = await get_cart_by_user_id(telegram_id)
-        logger.info(f"Результат поиска корзины: {cart}")
+        telegram_id = int(telegram_id)
+        product_id = int(product_id)
+        quantity = int(quantity)
 
-        if not cart:
-            logger.info("Корзина не найдена, создаем новую корзину")
-            cart = await create_cart(telegram_id)
-            logger.info(f"Созданная корзина: {cart}")
+        await add_cart_item(telegram_id, product_id, quantity)
 
-        # Получаем или создаем элемент корзины
-        if cart:
-            logger.info(f"Поиск товара в корзине: cart_id={cart['id']}, product_id={product_id}")
-            cart_item = await get_cart_item(cart['id'], product_id)
-            logger.info(f"Результат поиска товара в корзине: {cart_item}")
-
-            if cart_item:
-                new_quantity = int(cart_item['quantity']) + quantity
-                logger.info(f"Обновление количества товара: новое количество={new_quantity}")
-                await update_cart_item_quantity(cart_item['id'], new_quantity)
-            else:
-                logger.info("Добавление нового товара в корзину")
-                await add_cart_item(cart['id'], product_id, quantity)
-        else:
-            logger.error("Ошибка при создании корзины")
-            return web.json_response({
-                "success": False,
-                "message": "Ошибка при создании корзины"
-            }, status=500)
-
-        logger.info("Товар успешно добавлен в корзину")
         return web.json_response({
             "success": True,
             "message": "Товар добавлен в корзину"
         })
     except Exception as e:
-        logger.error(f"Ошибка при добавлении товара в корзину: {e}", exc_info=True)
+        logger.error(f"Ошибка в handle_add_to_cart: {e}", exc_info=True)
+        return web.json_response({
+            "success": False,
+            "message": f"Ошибка: {e}"
+        }, status=500)
+
+
+async def handle_remove_from_cart(request):
+    """Обработчик удаления товара из корзины."""
+    try:
+        logger.info("Начало обработки запроса handle_remove_from_cart")
+        request_data = await request.json()
+        telegram_id = request_data.get("telegram_id")
+        product_id = request_data.get("product_id")
+
+        if telegram_id is None or product_id is None:
+            logger.error("Не указан telegram_id или product_id")
+            return web.json_response({
+                "success": False,
+                "message": "Не указан telegram_id или product_id"
+            }, status=400)
+
+        telegram_id = int(telegram_id)
+        product_id = int(product_id)
+
+        await remove_cart_item(telegram_id, product_id)
+
+        return web.json_response({
+            "success": True,
+            "message": "Товар удален из корзины"
+        })
+    except Exception as e:
+        logger.error(f"Ошибка в handle_remove_from_cart: {e}", exc_info=True)
+        return web.json_response({
+            "success": False,
+            "message": f"Ошибка: {e}"
+        }, status=500)
+
+
+async def handle_update_cart_item(request):
+    """Обработчик обновления количества товара в корзине."""
+    try:
+        logger.info("Начало обработки запроса handle_update_cart_item")
+        request_data = await request.json()
+        telegram_id = request_data.get("telegram_id")
+        product_id = request_data.get("product_id")
+        change = request_data.get("change")  # Изменение количества (например, +1 или -1)
+
+        if telegram_id is None or product_id is None or change is None:
+            logger.error("Не указан telegram_id, product_id или change")
+            return web.json_response({
+                "success": False,
+                "message": "Не указан telegram_id, product_id или change"
+            }, status=400)
+
+        telegram_id = int(telegram_id)
+        product_id = int(product_id)
+        change = int(change)
+
+        # Получаем текущий элемент корзины
+        cart_item = await get_cart_item(telegram_id, product_id)
+        if cart_item is None:
+            logger.error("Товар не найден в корзине")
+            return web.json_response({
+                "success": False,
+                "message": "Товар не найден в корзине"
+            }, status=404)
+
+        # Вычисляем новое количество
+        new_quantity = cart_item["quantity"] + change
+
+        # Проверяем, чтобы количество не было меньше 1
+        if new_quantity < 1:
+            new_quantity = 1
+
+        # Обновляем количество товара в корзине
+        await update_cart_item_quantity(cart_item["id"], new_quantity)
+
+        # Получаем обновленные данные корзины
+        cart_items = await get_cart_items(telegram_id)
+        cart_items_json = []
+        total_price = 0
+        total_count = 0
+
+        for item in cart_items:
+            cart_items_json.append({
+                "id": item["id"],
+                "name": item["name"],
+                "price": float(item["price"]),
+                "quantity": item["quantity"],
+                "total": float(item["total"]),
+            })
+            total_price += float(item["total"])
+            total_count += item["quantity"]
+
+        return web.json_response({
+            "success": True,
+            "message": "Количество товара обновлено",
+            "cart_items": cart_items_json,
+            "total_price": total_price,
+        })
+    except Exception as e:
+        logger.error(f"Ошибка в handle_update_cart_item: {e}", exc_info=True)
         return web.json_response({
             "success": False,
             "message": f"Ошибка: {e}"
@@ -138,33 +199,19 @@ async def handle_clear_cart(request):
     try:
         logger.info("Начало обработки запроса handle_clear_cart")
         request_data = await request.json()
-        telegram_id = int(request_data.get("telegram_id"))
-        logger.info(f"Полученный telegram_id: {telegram_id}")
+        telegram_id = request_data.get("telegram_id")
 
-        if not telegram_id:
+        if telegram_id is None:
             logger.error("Не указан telegram_id")
             return web.json_response({
                 "success": False,
                 "message": "Не указан telegram_id"
             }, status=400)
 
-        # Получаем корзину пользователя
-        logger.info(f"Поиск корзины для пользователя с telegram_id: {telegram_id}")
-        cart = await get_cart_by_user_id(telegram_id)
-        logger.info(f"Результат поиска корзины: {cart}")
+        telegram_id = int(telegram_id)
 
-        if not cart:
-            logger.error("Корзина не найдена")
-            return web.json_response({
-                "success": False,
-                "message": "Корзина не найдена"
-            }, status=404)
+        await clear_cart(telegram_id)
 
-        # Очищаем корзину
-        logger.info(f"Очистка корзины с cart_id: {cart['id']}")
-        await clear_cart(cart['id'])
-
-        logger.info("Корзина успешно очищена")
         return web.json_response({
             "success": True,
             "message": "Корзина очищена"
@@ -177,123 +224,37 @@ async def handle_clear_cart(request):
         }, status=500)
 
 
-async def handle_update_cart_item(request):
-    """Обработчик обновления количества товара в корзине."""
+
+async def handle_cart_page(request):
+    """Обработчик для отображения страницы корзины."""
     try:
-        logger.info("Начало обработки запроса handle_update_cart_item")
-        request_data = await request.json()
-        telegram_id = int(request_data.get("telegram_id"))
-        product_id = int(request_data.get("product_id"))
-        quantity = int(request_data.get("quantity"))
-        logger.info(f"Полученные данные: telegram_id={telegram_id}, product_id={product_id}, quantity={quantity}")
+        telegram_id = request.query.get('telegram_id')
 
-        if not telegram_id or not product_id or not quantity:
-            logger.error("Не указан telegram_id, product_id или quantity")
-            return web.json_response({
-                "success": False,
-                "message": "Не указан telegram_id, product_id или quantity"
-            }, status=400)
+        if telegram_id is None:
+            return aioj.render_template("cart.html", request, {
+                "cart_items": [],
+                "total_price": 0,
+                "telegram_id": None,
+                "category": None  # Add category = None
+            })
 
-        # Получаем корзину пользователя
-        logger.info(f"Поиск корзины для пользователя с telegram_id: {telegram_id}")
-        cart = await get_cart_by_user_id(telegram_id)
-        logger.info(f"Результат поиска корзины: {cart}")
+        telegram_id = int(telegram_id)
 
-        if not cart:
-            logger.error("Корзина не найдена")
-            return web.json_response({
-                "success": False,
-                "message": "Корзина не найдена"
-            }, status=404)
+        cart_items = await get_cart_items(telegram_id)
+        total_price = sum(item['total'] for item in cart_items)
 
-        # Обновляем количество товара
-        logger.info(f"Поиск товара в корзине: cart_id={cart['id']}, product_id={product_id}")
-        cart_item = await get_cart_item(cart['id'], product_id)
-        logger.info(f"Результат поиска товара в корзине: {cart_item}")
-
-        if cart_item:
-            logger.info(f"Обновление количества товара: новое количество={quantity}")
-            await update_cart_item_quantity(cart_item['id'], quantity)
-        else:
-            logger.error("Товар не найден в корзине")
-            return web.json_response({
-                "success": False,
-                "message": "Товар не найден в корзине"
-            }, status=404)
-
-        # Получаем обновленные данные корзины
-        logger.info("Получение обновленных данных корзины")
-        cart_items = await get_cart_items(cart['id'])
-        total_price = sum(float(item['total']) for item in cart_items)
-        logger.info(f"Обновленные данные корзины: cart_items={cart_items}, total_price={total_price}")
-
-        return web.json_response({
-            "success": True,
-            "message": "Количество товара обновлено",
+        return aioj.render_template("cart.html", request, {
             "cart_items": cart_items,
-            "total_price": float(total_price),
+            "total_price": total_price,
+            "telegram_id": telegram_id,
+            "category": None  # Add category = None
         })
     except Exception as e:
-        logger.error(f"Ошибка в handle_update_cart_item: {e}", exc_info=True)
-        return web.json_response({
-            "success": False,
-            "message": f"Ошибка: {e}"
-        }, status=500)
-
-
-async def handle_remove_from_cart(request):
-    """Обработчик удаления товара из корзины."""
-    try:
-        logger.info("Начало обработки запроса handle_remove_from_cart")
-        # Получаем данные из запроса
-        request_data = await request.json()
-        telegram_id = int(request_data.get("telegram_id"))
-        product_id = int(request_data.get("product_id"))
-        logger.info(f"Полученные данные: telegram_id={telegram_id}, product_id={product_id}")
-
-        # Валидация данных
-        if not telegram_id or not product_id:
-            logger.error("Не указан telegram_id или product_id")
-            return web.json_response({
-                "success": False,
-                "message": "Не указан telegram_id или product_id"
-            }, status=400)
-
-        # Получаем корзину пользователя
-        logger.info(f"Поиск корзины для пользователя с telegram_id: {telegram_id}")
-        cart = await get_cart_by_user_id(telegram_id)
-        logger.info(f"Результат поиска корзины: {cart}")
-
-        if not cart:
-            logger.error("Корзина не найдена")
-            return web.json_response({
-                "success": False,
-                "message": "Корзина не найдена"
-            }, status=404)
-
-        # Удаляем товар из корзины
-        logger.info(f"Удаление товара из корзины: cart_id={cart['id']}, product_id={product_id}")
-        await remove_cart_item(cart['id'], product_id)
-
-        # Возвращаем обновленные данные корзины
-        logger.info("Получение обновленных данных корзины")
-        cart_items = await get_cart_items(cart['id'])
-        total_price = sum(float(item['total']) for item in cart_items)
-        logger.info(f"Обновленные данные корзины: cart_items={cart_items}, total_price={total_price}")
-
-        # Преобразуем Decimal в float
-        cart_items_list = [decimal_to_float(dict(item)) for item in cart_items]
-        total_price = float(total_price)
-        logger.info(f"Преобразованные данные: cart_items_list={cart_items_list}, total_price={total_price}")
-
-        return web.json_response({
-            "success": True,
-            "cart_items": cart_items_list,
-            "total_price": total_price
+        # Обработка ошибок
+        return aioj.render_template("cart.html", request, {
+            "cart_items": [],
+            "total_price": 0,
+            "telegram_id": None,
+            "category": None,  # Add category = None
+            "error_message": str(e)  # Передаем сообщение об ошибке в шаблон
         })
-    except Exception as e:
-        logger.error(f"Ошибка в handle_remove_from_cart: {e}", exc_info=True)
-        return web.json_response({
-            "success": False,
-            "message": f"Internal Server Error: {str(e)}"
-        }, status=500)

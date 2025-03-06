@@ -7,6 +7,7 @@ class Database:
     def __init__(self):
         """Конструктор класса, инициализирующий конфигурацию."""
         self.pool = None
+        logger.debug("Database instance created")
 
     async def connect(self):
         """Инициализация пула подключений к базе данных."""
@@ -23,35 +24,56 @@ class Database:
             logger.critical(f"Database connection error: {e}")
             raise
 
-
     async def execute(self, query: str, *args):
         """Выполнить SQL-запрос."""
-        async with self.pool.acquire() as conn:
-            return await conn.execute(query, *args)
-            
-    async def fetch_all(self, query, *args):
-        """Выполнить запрос и вернуть все результаты."""
+        logger.debug(f"Executing query: {query} with args: {args}")
         async with self.pool.acquire() as conn:
             try:
-                return await conn.fetch(query, *args)
+                result = await conn.execute(query, *args)
+                logger.debug(f"Query executed successfully: {query}")
+                return result
+            except Exception as e:
+                logger.error(f"Query execution error: {query} | {e}")
+                raise
+
+    async def fetch_all(self, query, *args):
+        """Выполнить запрос и вернуть все результаты."""
+        logger.debug(f"Fetching all with query: {query} and args: {args}")
+        async with self.pool.acquire() as conn:
+            try:
+                result = await conn.fetch(query, *args)
+                logger.debug(f"Query fetched successfully: {query} | Result count: {len(result)}")
+                return result
             except Exception as e:
                 logger.error(f"Query error: {query} | {e}")
                 return []
 
     async def fetch_one(self, query, *args):
         """Выполнить запрос и вернуть одну запись."""
+        logger.debug(f"Fetching one with query: {query} and args: {args}")
         async with self.pool.acquire() as conn:
             try:
-                return await conn.fetchrow(query, *args)
+                result = await conn.fetchrow(query, *args)
+                if result:
+                    logger.debug(f"Query fetched successfully: {query} | Result: {result}")
+                else:
+                    logger.debug(f"Query fetched successfully: {query} | Result: None")
+                return result
             except Exception as e:
                 logger.error(f"Query error: {query} | {e}")
                 return None
 
     async def fetchval(self, query, *args):
         """Выполнить запрос и вернуть одно значение."""
+        logger.debug(f"Fetching val with query: {query} and args: {args}")
         async with self.pool.acquire() as conn:
             try:
-                return await conn.fetchval(query, *args)
+                result = await conn.fetchval(query, *args)
+                if result:
+                    logger.debug(f"Query fetched successfully: {query} | Result: {result}")
+                else:
+                    logger.debug(f"Query fetched successfully: {query} | Result: None")
+                return result
             except Exception as e:
                 logger.error(f"Query error: {query} | {e}")
                 return None

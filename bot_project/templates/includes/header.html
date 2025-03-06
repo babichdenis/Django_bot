@@ -1,60 +1,45 @@
-<header class="bg-light py-3 sticky-top">
+<header class="py-3 bg-white border-bottom">
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center">
-            <!-- Логотип -->
-            <a href="/" class="text-decoration-none">
-                <img src="/media/logo.png" alt="Логотип" width="50">
+        <div class="d-flex flex-wrap align-items-center justify-content-between">
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <!-- Логотип и название магазина -->
+            <a href="/" class="d-flex align-items-center mb-md-0 text-dark text-decoration-none">
+                <img src="{{ MEDIA_URL }}main/images/logo.svg" alt="Логотип магазина" width="32" height="32" class="me-2">
+                <span class="fs-4 fw-bold">Магазин</span>
             </a>
 
-            <!-- Кнопка бургер-меню -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <!-- Иконка Корзины -->
-            <a class="text-decoration-none text-dark" data-bs-toggle="modal" data-bs-target="#cart" title="Корзина">
-                <i class="fas fa-shopping-cart"></i>
-                <span class="total-count" style="margin-left: 5px;">0</span>  <!-- Количество товаров в корзине -->
-            </a>
+            <!-- Панель навигации -->
+            <nav>
+                <ul class="nav justify-content-end">
+                    <li class="nav-item">
+                        <a href="/" class="nav-link link-dark px-2">Главная</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/catalog" class="nav-link link-dark px-2">Каталог</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/about" class="nav-link link-dark px-2">О нас</a>
+                    </li>
+                    <!-- Корзина с количеством товаров -->
+<!-- Корзина с количеством товаров -->
+<li class="nav-item">
+    <script>
+        const telegramId = Telegram.WebApp.initDataUnsafe.user?.id;
+        let cartUrl = "/cart";
+        if (telegramId) {
+            cartUrl += `?telegram_id=${telegramId}`;
+        }
+        document.write(`<a href="${cartUrl}" class="nav-link link-dark px-2 position-relative">
+            <i class="fas fa-shopping-cart"></i>
+            <span class="total-count position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary">
+                0
+                <span class="visually-hidden">товаров в корзине</span>
+            </span>
+        </a>`);
+    </script>
+</li>
+                </ul>
+            </nav>
         </div>
-
-        <!-- Навигация -->
-        <nav class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto mb-0">
-                <!-- Иконка Личного кабинета -->
-                <li class="nav-item">
-                    <a href="/profile" class="nav-link text-dark" title="Личный кабинет">
-                        <i class="fas fa-user"></i> Личный кабинет
-                    </a>
-                </li>
-
-                <!-- Иконка Настроек -->
-                <li class="nav-item">
-                    <a href="/settings" class="nav-link text-dark" title="Настройки">
-                        <i class="fas fa-cog"></i> Настройки
-                    </a>
-                </li>
-
-                <!-- Иконка Выхода -->
-                <li class="nav-item">
-                    <a href="/logout" class="nav-link text-dark" title="Выход">
-                        <i class="fas fa-sign-out-alt"></i> Выход
-                    </a>
-                </li>
-            </ul>
-        </nav>
     </div>
 </header>
-
-<!-- Подключение Font Awesome для иконок -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-<!-- Подключение Bootstrap CSS и JS -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-
-<style>
-    /* Убедитесь, что бургер-меню видимо */
-    .navbar-toggler {
-        border: none; /* Убираем рамку вокруг кнопки */
-    }
-</style>
