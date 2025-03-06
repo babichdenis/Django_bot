@@ -4,37 +4,6 @@ from utils.logger import logger
 from datetime import datetime
 
 
-# async def fetch_all(query: str, *args):
-#     """Выполняет SQL-запрос и возвращает все результаты."""
-#     try:
-#         return await database.fetch_all(query, *args)
-#     except Exception as e:
-#         logger.error(f"Ошибка при выполнении запроса: {query} | {e}")
-#         return []
-
-# async def fetch_one(query: str, *args):
-#     """Выполняет SQL-запрос и возвращает одну запись."""
-#     try:
-#         return await database.fetch_one(query, *args)
-#     except Exception as e:
-#         logger.error(f"Ошибка при выполнении запроса: {query} | {e}")
-#         return None
-
-# async def fetchval(query: str, *args):
-#     """Выполняет SQL-запрос и возвращает одно значение."""
-#     try:
-#         return await database.fetchval(query, *args)
-#     except Exception as e:
-#         logger.error(f"Ошибка при выполнении запроса: {query} | {e}")
-#         return None
-
-# async def execute(query: str, *args):
-#     """Выполняет SQL-запрос без возвращения данных."""
-#     try:
-#         await database.execute(query, *args)
-#     except Exception as e:
-#         logger.error(f"Ошибка при выполнении запроса: {query} | {e}")
-
 async def get_categories():
     """Получить все доступные категории."""
     query = "SELECT id, name, image FROM products_category"
@@ -106,3 +75,15 @@ async def create_telegram_user(telegram_id: int, username: str, first_name: str,
             updated_at = $6
     """
     await database.execute(query, telegram_id, username, first_name, last_name, created_at, updated_at, is_active)
+
+
+async def get_top_level_categories():
+    """Получить категории первого уровня."""
+    query = "SELECT id, name, image FROM products_category WHERE parent_id IS NULL"
+    return await database.fetch_all(query)
+
+
+async def get_subcategories(parent_id: int):
+    """Получить вложенные категории по parent_id."""
+    query = "SELECT id, name, image FROM products_category WHERE parent_id = $1"
+    return await database.fetch_all(query, parent_id)

@@ -8,7 +8,8 @@ from database.queries import (
     get_featured_products,
     get_product,
     product_exists,
-    get_total_products_by_category  # Импортируем новую функцию
+    get_total_products_by_category,
+    get_top_level_categories  # Импортируем новую функцию
 )
 from utils.logger import logger
 from utils.utils import handle_error
@@ -16,11 +17,11 @@ from database.db import database
 
 
 async def handle_index(request):
-    """Главная страница с популярными товарами."""
+    """Главная страница с популярными товарами и категориями."""
     try:
         context = {
             "featured_products": await get_featured_products(),
-            "categories": await get_categories(),
+            "categories": await get_top_level_categories(),
         }
         return aioj.render_template("index.html", request, context)
     except Exception as e:
@@ -82,44 +83,24 @@ async def handle_category(request):
     try:
         category_id = int(request.match_info["category_id"])
         category = await get_category(category_id)
-
+        subcategories = await get_subcategories(category_id)
+        breadcrumbs = await get_breadcrumbs(category_id)
+        
         if not category:
             return web.Response(text="Category not found", status=404)
 
-        # Пагинация
+        # Получаем товары
         page = int(request.query.get('page', 1))
         per_page = 20
-
-        # Получаем товары для текущей страницы
         products = await get_products_by_category(category_id, page, per_page)
-
-        # Получаем общее количество товаров в категории
+        print(products)
         total_products = await get_total_products_by_category(category_id)
-
-        # Вычисляем общее количество страниц
         total_pages = (total_products + per_page - 1) // per_page if total_products else 1
-
-        # Хлебные крошки
-        breadcrumbs = [{'name': '🏠', 'url': '/'}]
-        current_category = category
-        while current_category and current_category.get('parent_id'):
-            parent_category = await get_category(current_category['parent_id'])
-            if parent_category:
-                breadcrumbs.append({
-                    'name': parent_category['name'].lower(),
-                    'url': f'/category/{parent_category["id"]}',
-                })
-                current_category = parent_category
-            else:
-                break
-        breadcrumbs.append({
-            'name': category['name'].lower(),
-            'url': f'/category/{category["id"]}',
-        })
 
         # Контекст для шаблона
         context = {
             'category': category,
+            'subcategories': subcategories,
             'products': products,
             'breadcrumbs': breadcrumbs,
             'page': page,
@@ -132,27 +113,6 @@ async def handle_category(request):
     except Exception as e:
         logger.error(f"Error in handle_category: {e}", exc_info=True)
         return web.Response(text="Internal Server Error", status=500)
-
-
-async def handle_search(request):
-    """Обработчик поиска товаров."""
-    query = request.query.get("q", "").strip()
-    if not query:
-        return web.HTTPFound("/")
-
-    try:
-        products = await database.fetch_all(
-            """SELECT id, name, price, main_image as image
-               FROM products_product
-               WHERE name ILIKE $1""",
-            f"%{query}%"
-        )
-        context = {"products": products, "query": query}
-        return aioj.render_template("search.html", request, context)
-    except Exception as e:
-        logger.error(f"Error in handle_search: {e}")
-        return web.Response(text="Internal Server Error", status=500)
-
 
 async def handle_product(request):
     """Страница товара."""
@@ -171,3 +131,45 @@ async def handle_product(request):
     except Exception as e:
         logger.error(f"Product handler error: {e}")
         return web.Response(text="Internal Server Error", status=500)
+
+
+async def get_all_categories():
+    """Получить все категории."""
+    query = "SELECT id, name, parent_id FROM products_category"
+    return await database.fetch_all(query)
+
+async def get_breadcrumbs(category_id: int):
+    """Получить breadcrumbs для категории."""
+    all_categories = await get_all_categories()
+    categories_dict = {cat['id']: cat for cat in all_categories}  # Словарь для быстрого доступа
+
+    breadcrumbs = []
+    current_id = category_id
+
+    while current_id:
+        category = categories_dict.get(current_id)
+        if not category:
+            break  # Если категория не найдена, выходим из цикла
+
+        breadcrumbs.append({
+            'name': category.get('name', 'Без названия'),
+            'url': f"/category/{category['id']}"
+        })
+
+        current_id = category.get('parent_id')
+
+    # Добавляем корневую категорию (главную страницу)
+    breadcrumbs.append({
+        'name': '🏠 ',
+        'url': '/'
+    })
+
+    # Разворачиваем список, чтобы начать с корневой категории
+    breadcrumbs.reverse()
+    return breadcrumbs
+
+
+async def get_subcategories(parent_id: int):
+    """Получить подкатегории по parent_id."""
+    query = "SELECT id, name, image FROM products_category WHERE parent_id = $1"
+    return await database.fetch_all(query, parent_id)

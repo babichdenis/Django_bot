@@ -3,15 +3,15 @@
         <div class="d-flex flex-wrap align-items-center justify-content-between">
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
             <!-- Логотип и название магазина -->
-            <a href="/" class="d-flex align-items-center mb-md-0 text-dark text-decoration-none">
-                <img src="/media/logo.png" alt="Логотип магазина" width="32" height="32" class="me-2">
-                <span class="fs-4 fw-bold">Магазин</span>
-            </a>
 
+            <a href="/" class="d-flex align-items-center mb-md-0 text-dark text-decoration-none">
+                <img src="/media/logo.png" alt="Логотип магазина" width="40" height="40" class="me-2 rounded-circle shadow-sm">
+                <span class="fs-4 fw-bold text-primary">Магазин</span>
+            </a>
             <!-- Панель навигации -->
             <nav>
                 <ul class="nav justify-content-end">
-                    <li class="nav-item">
+                   <!-- <li class="nav-item">
                         <a href="/" class="nav-link link-dark px-2">Главная</a>
                     </li>
                     <li class="nav-item">
@@ -19,17 +19,17 @@
                     </li>
                     <li class="nav-item">
                         <a href="/about" class="nav-link link-dark px-2">О нас</a>
-                    </li>
+                    </li>-->
                     <!-- Корзина с количеством товаров -->
 <!-- Корзина с количеством товаров -->
-<li class="nav-item">
+<li class="nav-item justify-content-end align-items-center">
     <script>
         const telegramId = Telegram.WebApp.initDataUnsafe.user?.id;
         let cartUrl = "/cart";
         if (telegramId) {
             cartUrl += `?telegram_id=${telegramId}`;
         }
-        document.write(`<a href="${cartUrl}" class="nav-link link-dark px-2 position-relative">
+        document.write(`<a href="${cartUrl}" class="nav-link link-dark px-3 py-2 position-relative bg-light rounded-pill shadow-sm">
             <i class="fas fa-shopping-cart"></i>
             <span class="total-count position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary">
                 0
