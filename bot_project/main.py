@@ -11,6 +11,7 @@ from handlers.web_handlers import handle_index, handle_category
 from database.db import database
 from routes.web import setup_web_routes
 from routes.telegram import setup_telegram_routes
+from aiohttp_session import setup, get_session, SimpleCookieStorage
 
 
 # Настройка логирования
@@ -26,6 +27,7 @@ MEDIA_DIR = BASE_DIR / "media"
 TEMPLATES_DIR = BASE_DIR / "bot_project" / "templates" 
 
 
+
 async def main():
     try:
         logger.info("Starting bot initialization...")
@@ -38,7 +40,7 @@ async def main():
         await database.connect() 
         # Инициализация веб-сервера
         app = web.Application()
-
+        setup(app, SimpleCookieStorage())
         aioj.setup(app, loader=jinja2.FileSystemLoader(str(TEMPLATES_DIR)))
 
         # Маршруты

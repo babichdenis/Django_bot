@@ -16,7 +16,8 @@ from handlers.web_handlers_orders import (
     handlers_create_order, 
     handlers_order_checkout, 
     handlers_order_payment, 
-    handlers_order_detail
+    # handlers_order_detail
+    handle_yookassa_webhook,
 )
 
 
@@ -38,6 +39,9 @@ def setup_web_routes(app: web.Application, media_dir: str):
         # Заказ 
         web.post('/order-create', handlers_create_order),
         web.get('/order-checkout/{order_id}', handlers_order_checkout),
+        # Оплата
         web.post('/order-payment/{order_id}', handlers_order_payment),
-        web.get('/order-detail/{order_id}', handlers_order_detail),
+        # web.get('/order-detail/{order_id}', handlers_order_detail),
+        web.post('/yookassa-webhook', handle_yookassa_webhook),
+        # web.post('/tinkoff-webhook', handle_tinkoff_webhook),
     ])

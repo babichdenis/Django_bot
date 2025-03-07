@@ -100,13 +100,16 @@
         <div class="form-group">
             <label for="payment_method">Способ оплаты:</label>
             <select class="form-control" id="payment_method" name="payment_method">
-                <option value="credit_card">Кредитная карта</option>
-                <option value="paypal">PayPal</option>
+                <option value="credit_card">Yoomoney</option>
+                <option value="paypal">При получении</option>
                 <!-- Добавьте другие способы оплаты -->
             </select>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-block" style="margin-top:15px">Оплатить</button>
+        <form action="/order-payment/{{ order.id }}" method="post">
+            <input type="hidden"  name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="btn btn-primary btn-lg btn-block" style="margin-top:15px;">Оплатить заказ</button>
+        </form>
     </form>
     {% else %}
     <p>Заказ не найден.</p>

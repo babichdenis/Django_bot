@@ -1,7 +1,5 @@
 from django.db import models
-
 from django.core.exceptions import ValidationError
-from model_utils import FieldTracker
 from apps.orders.models import Order
 from apps.core.models import BaseModel
 from apps.core.validators import validate_positive_decimal
@@ -19,11 +17,10 @@ class Payment(BaseModel):
 
     PAYMENT_METHODS = [
         ('card', ('Банковская карта')),
-        ('qiwi', ('QIWI')),
+        ('tbank', ('Т-Банк')),
         ('yoomoney', ('ЮMoney')),
         ('sbp', ('СБП')),
     ]
-    tracker = FieldTracker(fields=['status'])
     order = models.ForeignKey(
         Order,
         on_delete=models.PROTECT,

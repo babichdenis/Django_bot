@@ -17,3 +17,12 @@ def decimal_to_float(data):
     elif isinstance(data, Decimal):
         return float(data) 
     return data
+
+
+import secrets
+
+def generate_csrf_token():
+    """
+    Генерирует случайный CSRF-токен.
+    """
+    return secrets.token_hex(16) 
