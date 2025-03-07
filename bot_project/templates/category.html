@@ -3,7 +3,7 @@
 {% block title %}{{ category.name }}{% endblock %}
 
 {% block content %}
-<!-- Хлебные крошки -->
+
 <nav aria-label="breadcrumb" class="breadcrumb-container">
     <ol class="breadcrumb">
 
@@ -112,6 +112,27 @@
 
 
 <style>
+    .breadcrumb-container {
+        margin-bottom: 10px;
+        margin-top: 40px;
+    }
+    
+    .breadcrumb-style {
+        background-color: #f5f5f5;
+        padding: 10px;
+        border-radius: 10px;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+        font-family: Arial, sans-serif;
+        font-size: 18px;
+        color: #ccc;
+    }
+    
+    .product-image-col {
+        padding: 20px;
+    }
     .grid-container {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));

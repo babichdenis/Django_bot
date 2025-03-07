@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4" style="margin-top:20px">Оформление заказа</h1>
+
+    {% if order %}
+    <p>Номер заказа: {{ order.id }}</p>
+    <p>Сумма заказа: {{ order.total }} ₽</p>
+ 
+    <!-- Список товаров -->
+    {% if cart_items %}
+    <div class="order-items mb-4">
+        <h3>Ваши товары:</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Товар</th>
+                    <th>Количество</th>
+                    <th>Цена за единицу</th>
+                    <th>Общая стоимость</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order_items %}
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <img src="{{ item.main_image }}" alt="{{ item.name }}" class="img-thumbnail" style="width: 50px; height: 50px; margin-right: 10px;">
+                            {{ item.name }}
+                        </div>
+                    </td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.price }} ₽</td>
+                    <td>{{ item.total }} ₽</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p class="text-right"><strong>Итого: {{ order.total }} ₽</strong></p>
+    </div>
+    {% endif %}
+
+    <!-- Форма оформления заказа -->
+    <form action="/order-payment/{{ order.id }}" method="post" class="checkout-form">
+        <div class="form-group">
+            <label for="delivery_address">Адрес доставки:</label>
+            {% if addresses %}
+            <select class="form-control" id="delivery_address" name="delivery_address">
+                {% for address in addresses %}
+                <option value="{{ address.id }}" {% if address.is_primary %}selected{% endif %}>
+                    {{ address.city }}, {{ address.street }}, д. {{ address.building }}, кв. {{ address.apartment|default('-') }}
+                </option>
+                {% endfor %}
+            </select>
+            <a href="#">Добавить новый адрес</a>
+            {% else %}
+            <p>Пожалуйста, укажите адрес доставки:</p>
+            <div class="form-group">
+                <label for="country">Страна:</label>
+                <input type="text" class="form-control" id="country" name="country" required>
+            </div>
+            <div class="form-group">
+                <label for="city">Город:</label>
+                <input type="text" class="form-control" id="city" name="city" required>
+            </div>
+            <div class="form-group">
+                <label for="street">Улица:</label>
+                <input type="text" class="form-control" id="street" name="street" required>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="building">Дом:</label>
+                    <input type="text" class="form-control" id="building" name="building" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="apartment">Квартира:</label>
+                    <input type="text" class="form-control" id="apartment" name="apartment">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="postal_code">Почтовый индекс:</label>
+                <input type="text" class="form-control" id="postal_code" name="postal_code" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Телефон:</label>
+                <input type="tel" class="form-control" id="phone" name="phone" required>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="delivery_method">Способ доставки:</label>
+            <select class="form-control" id="delivery_method" name="delivery_method">
+                <option value="standard">Стандартная доставка</option>
+                <option value="express">Экспресс-доставка</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="payment_method">Способ оплаты:</label>
+            <select class="form-control" id="payment_method" name="payment_method">
+                <option value="credit_card">Кредитная карта</option>
+                <option value="paypal">PayPal</option>
+                <!-- Добавьте другие способы оплаты -->
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" style="margin-top:15px">Оплатить</button>
+    </form>
+    {% else %}
+    <p>Заказ не найден.</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .container {
+        max-width: 100%;
+        padding: 15px;
+    }
+
+    .checkout-form .form-group {
+        margin-bottom: 15px;
+    }
+
+    .checkout-form .form-control {
+        border-radius: 5px;
+    }
+
+    .checkout-form .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    .order-items .table {
+        width: 100%;
+        margin-bottom: 1rem;
+        background-color: transparent;
+    }
+
+    .order-items .table th,
+    .order-items .table td {
+        padding: 0.75rem;
+        vertical-align: top;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .order-items .table thead th {
+        vertical-align: bottom;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .order-items .table tbody + tbody {
+        border-top: 2px solid #dee2e6;
+    }
+
+    .order-items .img-thumbnail {
+        padding: 0.25rem;
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        max-width: 100%;
+        height: auto;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+</script>
+{% endblock %}

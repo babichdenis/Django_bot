@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Детали заказа</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .card {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Детали заказа #{{ order.id }}</h1>
+    <div class="card">
+        <p><strong>Статус заказа:</strong> {{ order.status }}</p>
+        <p><strong>Сумма заказа:</strong> {{ order.total }} ₽</p>
+        <p><strong>Стоимость доставки:</strong> {{ order.delivery_cost }} ₽</p>
+        <p><strong>Итого:</strong> {{ order.total + order.delivery_cost }} ₽</p>
+        <p><strong>Адрес доставки:</strong> {{ order.address }}</p>
+        <p><strong>Способ доставки:</strong> {{ order.delivery_method }}</p>
+        <p><strong>Комментарий:</strong> {{ order.comment }}</p>
+    </div>
+</body>
+</html>

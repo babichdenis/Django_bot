@@ -93,7 +93,6 @@ async def handle_category(request):
         page = int(request.query.get('page', 1))
         per_page = 20
         products = await get_products_by_category(category_id, page, per_page)
-        print(products)
         total_products = await get_total_products_by_category(category_id)
         total_pages = (total_products + per_page - 1) // per_page if total_products else 1
 
@@ -161,7 +160,7 @@ async def get_breadcrumbs(category_id: int):
     # Добавляем корневую категорию (главную страницу)
     breadcrumbs.append({
         'name': '🏠 ',
-        'url': '/'
+        'url': None 
     })
 
     # Разворачиваем список, чтобы начать с корневой категории

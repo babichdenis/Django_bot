@@ -1,6 +1,6 @@
 # handlers/telegram_handlers.py
 from aiogram import Bot, types
-from aiogram.filters import Command
+from aiogram.filters import Command, Filter
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from database.db import database
 from utils.logger import logger
@@ -10,6 +10,11 @@ from database.queries import create_telegram_user
 
 WEBAPP_URL = config("WEBAPP_URL")
 CHANNEL_USERNAME = config("CHANNEL_USERNAME")
+
+
+class IsSubscribed(Filter):
+    async def __call__(self, bot: Bot, message: types.Message) -> bool:
+        return await check_subscription(bot, message.from_user.id)
 
 async def check_subscription(bot: Bot, user_id: int) -> bool:
     """Проверяет, подписан ли пользователь на канал."""
@@ -32,6 +37,11 @@ async def send_welcome(message: types.Message, bot: Bot):
                 text="Подписаться на канал",
                 url=f"https://t.me/{CHANNEL_USERNAME[1:]}"
             ))
+            builder.row(types.InlineKeyboardButton(
+                text="Я подписался!",
+                callback_data="check_subscription" 
+            ))
+
             await message.answer(
                 "Для использования бота, пожалуйста, подпишитесь на наш канал:",
                 reply_markup=builder.as_markup()
@@ -59,6 +69,31 @@ async def send_welcome(message: types.Message, bot: Bot):
     except Exception as e:
         logger.error(f"Ошибка в send_welcome: {e}", exc_info=True)
         await message.answer("⚠️ Произошла ошибка. Попробуйте позже.")
+
+# Обработчик callback-запроса после подписки
+async def check_subscription_callback(callback: types.CallbackQuery, bot: Bot):
+    user_id = callback.from_user.id
+    if await check_subscription(bot, user_id):
+        # Пользователь подписался, отправляем благодарность и открываем магазин
+        await callback.message.edit_text("Спасибо за подписку! Добро пожаловать...", reply_markup=None) # Убираем кнопки
+        web_app_url = WEBAPP_URL
+        builder = InlineKeyboardBuilder()
+        builder.row(
+            types.InlineKeyboardButton(
+                text="Открыть магазин 🛍",
+                web_app=types.WebAppInfo(url=web_app_url)
+            )
+        )
+        await callback.message.answer("Добро пожаловать!", reply_markup=builder.as_markup()) # Отправляем кнопку "Открыть магазин"
+
+    else:
+        # Пользователь все еще не подписан
+        await callback.answer("Вы еще не подписались на канал. Пожалуйста, подпишитесь и попробуйте снова.", show_alert=True)
+
+def register_telegram_handlers(dp):
+    dp.message.register(send_welcome, Command("start"))
+    dp.message.register(show_help, Command("help"))
+    dp.callback_query.register(check_subscription_callback, lambda c: c.data == "check_subscription")
 
 async def show_help(message: types.Message):
     """Обработчик команды /help."""

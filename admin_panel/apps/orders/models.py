@@ -45,7 +45,9 @@ class Order(BaseModel):
     address = models.ForeignKey(
         DeliveryAddress,
         on_delete=models.PROTECT,
-        verbose_name=('Адрес доставки')
+        verbose_name=('Адрес доставки'),
+        null=True, 
+        blank=True,
     )
     total = models.DecimalField(
         max_digits=12,
@@ -99,31 +101,6 @@ class Order(BaseModel):
             models.Index(fields=['expected_delivery_date']),
         ]
 
-    def clean(self):
-        super().clean()
-        if self.address.user != self.user or not self.address.is_active:
-            raise ValidationError(
-                {'address': ('Адрес недоступен для использования')}
-            )
-        if self.discount < 0 or self.discount > 100:
-            raise ValidationError(
-                {'discount': ('Скидка должна быть от 0 до 100%')}
-            )
-
-    def calculate_total(self):
-        items_total = sum(item.subtotal for item in self.items.all())
-        discount_amount = items_total * (self.discount / 100)
-        return (items_total - discount_amount) + self.delivery_cost
-
-    def save(self, *args, **kwargs):
-        if not self.pk:  # Только при создании нового заказа
-            self.total = self.calculate_total()
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"Заказ #{self.pk}"
-
-
 class OrderItem(BaseModel):
     order = models.ForeignKey(
         Order,
@@ -162,22 +139,6 @@ class OrderItem(BaseModel):
     @property
     def subtotal(self):
         return self.quantity * self.price * (1 - self.discount / 100)
-
-    def clean(self):
-        super().clean()
-        if self.quantity > self.product.stock:
-            raise ValidationError(
-                {'quantity': ('Недостаточно товара на складе')}
-            )
-        if self.discount < 0 or self.discount > 100:
-            raise ValidationError(
-                {'discount': ('Скидка должна быть от 0 до 100%')}
-            )
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        super().save(*args, **kwargs)
-        self.order.save()  # Обновляем общую сумму заказа
 
 
 class OrderStatusHistory(BaseModel):

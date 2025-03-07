@@ -14,6 +14,7 @@
     {% block extra_css %}{% endblock %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
+        <style>
 
     </style>
 </head>
@@ -31,6 +32,38 @@
     {% include 'includes/footer.html' %}
 
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const backButton = document.getElementById('back-button');
+            const forwardButton = document.getElementById('forward-button');
+        
+            function updateButtons() {
+                if (window.history.length === 1) {
+                    backButton.style.display = 'none'; // Стрелка влево скрыта, если нет истории
+                } else {
+                    backButton.style.display = 'block';
+                }
+        
+                if (window.history.length === 1 || window.history.state === null) {
+                    forwardButton.style.display = 'none'; // Стрелка вправо скрыта, если нет истории впереди
+                } else {
+                    forwardButton.style.display = 'block';
+                }
+            }
+        
+            updateButtons();
+        
+            window.addEventListener('popstate', updateButtons);
+        });
+        
+        document.addEventListener("DOMContentLoaded", function() {
+            Telegram.WebApp.expand(); // Попытка развернуть на полный экран
+        
+            // Дополнительно, можно предложить пользователю сделать это вручную
+            if (!Telegram.WebApp.isExpanded) {
+                // Можно отобразить кнопку или сообщение с просьбой развернуть webapp
+                console.log("WebApp не в полноэкранном режиме. Предложите пользователю развернуть его.");
+            }
+        });
         // Функция для получения telegramId
         function getTelegramId() {
             const telegramId = Telegram.WebApp.initDataUnsafe.user?.id;

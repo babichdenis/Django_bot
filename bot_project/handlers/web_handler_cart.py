@@ -1,4 +1,3 @@
-# handlers/web_handler_cart.py
 from aiohttp import web
 import aiohttp_jinja2 as aioj
 from database.queries_cart import (
@@ -8,6 +7,14 @@ from database.queries_cart import (
     update_cart_item_quantity,
     remove_cart_item,
     clear_cart
+)
+from database.queries_orders import (
+    create_order_db,
+    create_order_item,
+    create_order_status_history,
+    get_order_by_id,
+    update_order_status,
+    update_order_payment_status
 )
 from utils.logger import logger
 from utils.utils import decimal_to_float
@@ -273,3 +280,65 @@ async def handle_cart_page(request):
             "category": None,
             "error_message": str(e)  # Передаем сообщение об ошибке в шаблон
         })
+
+
+async def create_order(request):
+    """Создание нового заказа."""
+    try:
+        logger.info("Начало обработки запроса create_order")
+        data = await request.json()
+        telegram_id = data.get('telegram_id')  # Получаем telegram_id
+        if not telegram_id:
+            logger.warning("Не указан telegram_id")
+            return web.json_response({'error': 'telegram_id is required'}, status=400)
+
+        # Получаем user_id из таблицы core_telegramuser по telegram_id
+        query = "SELECT id FROM core_telegramuser WHERE telegram_id = $1"
+        user_id_row = await request.app['db'].fetch_one(query, telegram_id)
+        if not user_id_row:
+            logger.warning(f"Пользователь с telegram_id {telegram_id} не найден")
+            return web.json_response({'error': 'User not found'}, status=404)
+
+        user_id = user_id_row[0]  # Получаем id пользователя
+
+        logger.debug(f"Получен user_id: {user_id}")
+
+        # Получаем товары из корзины
+        cart_items = await get_cart_items(user_id)  # Передаем user_id
+        if not cart_items:
+            logger.warning("Корзина пуста")
+            return web.json_response({'error': 'Cart is empty'}, status=400)
+
+        logger.debug(f"Товары в корзине: {cart_items}")
+
+        # Создаем заказ
+        total_amount = sum(item['quantity'] * item['price'] for item in cart_items) # Считаем сумму заказа
+        order_id = await create_order_db(user_id, total_amount)  # Передаем user_id и сумму заказа
+        if not order_id:
+            logger.error("Не удалось создать заказ")
+            return web.json_response({'error': 'Failed to create order'}, status=500)
+        logger.debug(f"Создан заказ с order_id: {order_id}")
+
+        # Добавляем товары в заказ
+        for item in cart_items:
+            success = await create_order_item(order_id, item['product_id'], item['quantity'], item['price'])
+            if not success:
+                logger.error(f"Не удалось создать элемент заказа для product_id={item['product_id']}")
+                # Обработка ошибки создания элемента заказа (например, откат транзакции)
+                return web.json_response({'error': 'Failed to create order item'}, status=500)
+        logger.debug("Элементы заказа успешно созданы")
+
+        # Создаем начальную запись в истории статусов
+        success = await create_order_status_history(order_id, status='new')
+        if not success:
+            logger.error("Не удалось создать запись в истории статусов")
+            return web.json_response({'error': 'Failed to create order status history'}, status=500)
+        logger.debug("Создана запись в истории статусов")
+
+        response_data = {'order_id': order_id}
+        logger.info("Заказ успешно создан")
+        return web.json_response(response_data)
+
+    except Exception as e:
+        logger.exception("Произошла ошибка при создании заказа")
+        return web.json_response({'error': str(e)}, status=500)

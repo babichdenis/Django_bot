@@ -30,15 +30,6 @@ class BaseModel(models.Model):
         ordering = ['-created_at']
         get_latest_by = 'created_at'
 
-    def clean(self):
-        """Общая валидация для всех моделей"""
-        super().clean()
-
-    def soft_delete(self):
-        """Мягкое удаление записи"""
-        self.is_active = False
-        self.save(update_fields=['is_active'])
-
     def __str__(self):
         return f"{self.__class__.__name__} #{self.pk}"
 

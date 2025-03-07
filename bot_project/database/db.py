@@ -1,4 +1,3 @@
-# database/db.py
 import asyncpg
 from decouple import config
 from utils.logger import logger

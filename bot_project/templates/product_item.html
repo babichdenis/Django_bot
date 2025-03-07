@@ -3,64 +3,61 @@
 {% block title %}{{ product.name }}{% endblock %}
 
 {% block content %}
-<div class="container product-page">
-    <!-- Хлебные крошки -->
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            {% for item in breadcrumbs %}
-                {% if loop.last %}
-                    <li class="breadcrumb-item active" aria-current="page">{{ item.name }}</li>
-                {% else %}
-                    <li class="breadcrumb-item"><a href="{{ item.url }}">{{ item.name }}</a></li>
-                {% endif %}
-            {% endfor %}
-        </ol>
-    </nav>
-
-    <div class="product-details">
-        <div class="product-image">
-            <img src="{{ product.main_image }}" class="img-fluid" alt="{{ product.name }}">
-        </div>
-        <div class="product-info">
-            <h1>{{ product.name }}</h1>
-            <p class="text-muted">{{ product.description }}</p>
-
-            <!-- Availability Badge -->
-            {% if product.available %}
-                <span class="badge bg-success">В наличии</span>
+<nav aria-label="breadcrumb" class="breadcrumb-container">
+    <ol class="breadcrumb breadcrumb-style">
+        {% for item in breadcrumbs %}
+            {% if item.url %}
+                <li class="breadcrumb-item"><a href="{{ item.url }}" class="breadcrumb-link">{{ item.name }}</a></li>
             {% else %}
-                <span class="badge bg-danger">Нет в наличии</span>
+                <li class="breadcrumb-item active" aria-current="page">{{ item.name }}</li>
             {% endif %}
+        {% endfor %}
+    </ol>
+</nav>
 
-            <h3>{{ product.price }} руб.</h3>
-
-            <!-- Quantity Control -->
-            <div class="quantity-control">
-                <button class="btn btn-outline-secondary decrease-quantity">-</button>
-                <input type="number" id="quantity" value="1" min="1" class="form-control text-center quantity-input" style="width: 70px;">
-                <button class="btn btn-outline-secondary increase-quantity">+</button>
+    <div class="row">
+        <div class="col-md-6 product-image-col">
+            <div class="product-image">
+                <img src="/media/{{ product.image }}" class="img-fluid" alt="{{ product.name }}">
             </div>
+        </div>
+ 
+        <div class="col-md-6 product-info-col">
+            <div class="product-info">
+                <h1>{{ product.name }}</h1>
+                <p class="text-muted">{{ product.description }}</p>
 
-            <!-- Add to Cart Button -->
-            {% if product.available %}
-                <button class="btn btn-primary add-to-cart-btn"
-                        data-product-id="{{ product.id }}"
-                        data-product-name="{{ product.name }}"
-                        data-product-price="{{ product.price }}">
-                    <i class="bi bi-cart-plus"></i> Добавить в корзину
-                </button>
-            {% else %}
-                <button class="btn btn-secondary add-to-cart-btn" disabled>Товар недоступен</button>
-            {% endif %}
-
-            <!-- Product Details List -->
-            <ul class="product-specs">
-                <li><strong>SKU:</strong> {{ product.sku }}</li>
-                <li><strong>Вес:</strong> {{ product.weight }} кг</li>
-                {% if product.dimensions %}
-                    <li><strong>Размеры:</strong> {{ product.dimensions }}</li>
+                <!-- Availability Badge -->
+                {% if product.available %}
+                    <span class="badge bg-success">В наличии</span>
+                {% else %}
+                    <span class="badge bg-danger">Нет в наличии</span>
                 {% endif %}
-            </ul>
+
+                <h3>{{ product.price }} руб.</h3>
+
+                <!-- Quantity Control -->
+                <div class="quantity-control">
+                    <button class="btn btn-sm btn-outline-secondary decrease-quantity">-</button>
+                    <input type="number" id="quantity" value="1" min="1" class="form-control text-center quantity-input" style="width: 70px;">
+                    <button class="btn btn-sm btn-outline-secondary increase-quantity">+</button>
+                </div>
+
+                <!-- Add to Cart Button -->
+                {% if product.available %}
+                    <button class="btn btn-sm btn-primary add-to-cart-btn"
+                            data-product-id="{{ product.id }}"
+                            data-product-name="{{ product.name }}"
+                            data-product-price="{{ product.price }}">
+                        <i class="bi bi-cart-plus"></i> Добавить в корзину
+                    </button>
+                {% else %}
+                    <button class="btn btn-sm btn-secondary add-to-cart-btn" disabled>Товар недоступен</button>
+                {% endif %}
+
+                <!-- Product Details List -->
+
+            </div>
         </div>
     </div>
 
@@ -70,7 +67,7 @@
             <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab" aria-controls="description" aria-selected="true">Описание</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="additional-info-tab" data-bs-toggle="tab" data-bs-target="#additional-info" type="button" role="tab" aria-controls="additional-info" aria-selected="false">Дополнительная информация</button>
+            <button class="nav-link" id="additional-info-tab" data-bs-toggle="tab" data-bs-target="#additional-info" type="button" role="tab" aria-controls="additional-info" aria-selected="false">Информация</button>
         </li>
     </ul>
 
@@ -79,14 +76,93 @@
             <p>{{ product.description }}</p>
         </div>
         <div class="tab-pane fade" id="additional-info" role="tabpanel" aria-labelledby="additional-info-tab">
-            <ul>
-                <li><strong>Производитель:</strong> Название производителя</li>
-                <li><strong>Страна:</strong> Страна производства</li>
-                <li><strong>Материал:</strong> Материал изготовления</li>
+            <ul class="product-specs">
+                <li><strong>SKU:</strong> {{ product.sku }}</li>
+                <li><strong>Вес:</strong> {{ product.weight }} кг</li>
+                {% if product.dimensions %}
+                    <li><strong>Размеры:</strong> {{ product.dimensions }}</li>
+                {% endif %}
             </ul>
         </div>
     </div>
 </div>
+<style>
+    .breadcrumb-container {
+        margin-bottom: 10px;
+        margin-top: 40px;
+    }
+    
+    .breadcrumb-style {
+        background-color: #f5f5f5;
+        padding: 10px;
+        border-radius: 10px;
+    }
+    
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+        font-family: Arial, sans-serif;
+        font-size: 18px;
+        color: #ccc;
+    }
+    
+    .product-image-col {
+        padding: 20px;
+    }
+    
+    .product-image {
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .product-info-col {
+        padding: 20px;
+    }
+    
+    .product-info {
+        margin-top: 0;
+    }
+    
+    .quantity-control {
+        margin-bottom: 10px;
+    }
+    
+    .product-specs {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .product-specs li {
+        margin-bottom: 5px;
+    }
+    
+    .product-specs li strong {
+        font-weight: bold;
+    }
+    
+    .tab-content {
+        margin-top: 20px;
+    }
+    
+    .tab-pane {
+        padding: 20px;
+    }
+    
+    .tab-pane ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .tab-pane li {
+        margin-bottom: 10px;
+    }
+    
+    .tab-pane li strong {
+        font-weight: bold;
+    }
+    
+</style>
 {% endblock %}
 
 {% block extra_js %}

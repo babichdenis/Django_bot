@@ -35,8 +35,7 @@ async def main():
         dp = Dispatcher()
 
         # Инициализация базы данных
-        await database.connect()  # Используем новый класс базы данных
-
+        await database.connect() 
         # Инициализация веб-сервера
         app = web.Application()
 

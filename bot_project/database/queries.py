@@ -40,7 +40,7 @@ async def get_total_products_by_category(category_id: int):
 async def get_product(product_id: int):
     """Получить полную информацию о товаре."""
     query = """
-        SELECT id, name, price, description, 
+        SELECT id, name, price, description,
                main_image as image, available
         FROM products_product
         WHERE id = $1 AND available = TRUE
