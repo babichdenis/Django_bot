@@ -1,23 +1,3 @@
-# services:
-#   django:
-#     build: ./admin_panel
-#     volumes:
-#       - ./media:/app/media # Монтируем папку media
-#     env_file:
-#       - .env
-#     ports:
-#       - "8000:8000"
-#     depends_on:
-#       - postgres
-
-#   bot:
-#     build: ./bot_app
-#     volumes:
-#       - ./media:/app/media # Монтируем ту же папку media
-#     env_file:
-#       - .env
-#     depends_on:
-#       - django
 services:
   postgres:
     image: postgres:13
@@ -30,44 +10,48 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  admin_panel:
+    build:
+      context: ./admin_panel
+      dockerfile: Dockerfile
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --no-input &&
+             gunicorn admin_panel.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - ./admin_panel:/app
+      - media_volume:/app/media
+    environment:
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: postgres
+      DB_PORT: ${DB_PORT}
+      SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DEBUG: ${DJANGO_DEBUG}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+
+  bot_project:
+    build:
+      context: ./bot_project
+      dockerfile: Dockerfile
+    command: python bot.py
+    volumes:
+      - ./bot_project:/app
+      - media_volume:/app/media
+    environment:
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: postgres
+      DB_PORT: ${DB_PORT}
+      BOT_TOKEN: ${BOT_TOKEN}
+    depends_on:
+      - postgres
+
 volumes:
   postgres_data:
-
-    # volumes:
-    #   postgres_data:
-    #   media:
-    # Volume для медиафайлов
-
-
-
-
-
-
-
-
-    # version: '3.8'
-
-    # services:
-    #   web:
-    #     build: .
-    #     volumes:
-    #       - .:/app
-    #       - ./media:/app/media  # Монтируем папку media
-    #     env_file:
-    #       - .env
-    #     ports:
-    #       - "8000:8000"
-    #     depends_on:
-    #       - db
-
-    #   db:
-    #     image: postgres:13
-    #     environment:
-    #       POSTGRES_DB: ${POSTGRES_DB}
-    #       DB_USER: ${DB_USER}
-    #       DB_PASSWORD: ${DB_PASSWORD}
-    #     volumes:
-    #       - postgres_data:/var/lib/postgresql/data/
-
-    # volumes:
-    #   postgres_data:
+  media_volume:

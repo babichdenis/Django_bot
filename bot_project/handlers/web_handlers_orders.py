@@ -118,7 +118,7 @@ async def create_payment(order_id, amount):
         "metadata": {
             "order_id": order_id
         }
-    }, str(uuid.uuid4())  # Уникальный идентификатор платежа
+    }, str(uuid.uuid4())})  # Уникальный идентификатор платежа
 
     return payment
 
@@ -178,3 +178,22 @@ async def update_order_status(order_id, status):
     """
     pass
     logger.info(f"Обновление статуса заказа {order_id} на {status}")
+
+
+async def payment_result(request):
+    """Отображение результата платежа."""
+    try:
+        payment_id = request.query.get('payment_id')
+        order_id = request.query.get('order_id')
+
+        payment = Payment.find_one(payment_id)
+        payment_success = payment.status == 'succeeded'
+
+        context = {
+            'payment_success': payment_success,
+            'order': await get_order_by_id(order_id),
+        }
+        return web.Response(text=render_template('payment_result.html', context))
+    except Exception as e:
+        logger.exception("Ошибка при отображении результата платежа")
+        return web.json_response({'error': str(e)}, status=500)
