@@ -1,11 +1,12 @@
 from pathlib import Path
-from decouple import config, Csv 
+from decouple import config, Csv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = config('SECRET_KEY')
-DEBUG = config('DEBUG', default=False, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
+SECRET_KEY = config('DJANGO_SECRET_KEY')
+DEBUG = config('DJANGO_DEBUG', default=False, cast=bool)
+ALLOWED_HOSTS = config(
+    'ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -87,8 +88,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR.parent / 'media'  # Папка media на уровне проекта
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'media' /'static'
-
+STATIC_ROOT = BASE_DIR / 'media' / 'static'
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

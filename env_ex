@@ -1,0 +1,27 @@
+# Django
+DEBUG=True
+SECRET_KEY=django-insecure-xiny-p1)78w11)ak9qzj8@+6zo7jv(50*fr^h+q8pky6@&awp4
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# База данных
+DB_NAME=postgres
+DB_USER=user
+DB_PASSWORD=password
+DB_HOST=localhost
+DB_PORT=5433
+
+# Бот
+BOT_TOKEN=7737966408:AAFxlaLbkFZpfpGTQz3VOzhaqkO7DOJuVzE
+WEBAPP_URL=https://7d33-45-12-134-232.ngrok-free.app 
+
+# Сервер aiohttp
+HOST=0.0.0.0
+PORT=8080
+
+# Канал для подписки
+CHANNEL_USERNAME=@shop_test_web_bot_Channel
+
+YOOMONEY_ID=381764678
+YOOMONEY_KEY=TEST:115087
+
+ЮKassa Test: 381764678:TEST:115087 2025-03-07 07:42

@@ -2,7 +2,7 @@ from aiohttp import web
 import aiohttp_jinja2 as aioj
 from database.queries_orders import (
     get_cart_items,
-    create_order_db,  
+    create_order_db,
     create_order_status_history,
     create_order_item,
     get_order_by_id,
@@ -38,11 +38,12 @@ async def handlers_create_order(request):
         logger.debug(f"Товары в корзине: {cart_items}")
 
         # Вычисляем общую сумму заказа
-        total_amount = sum(item['quantity'] * item['price'] for item in cart_items)
+        total_amount = sum(item['quantity'] * item['price']
+                           for item in cart_items)
         logger.debug(f"Общая сумма заказа: {total_amount}")
 
         async with database.pool.acquire() as connection:
-            async with connection.transaction():  
+            async with connection.transaction():
 
                 order_id = await create_order_db(telegram_id, total_amount, connection)
                 logger.debug(f"Создан заказ с order_id: {order_id}")
@@ -62,6 +63,7 @@ async def handlers_create_order(request):
     except Exception as e:
         logger.exception("Произошла ошибка при создании заказа")
         return web.json_response({'error': str(e)}, status=500)
+
 
 async def handlers_order_checkout(request):
     """Оформление заказа."""
@@ -97,7 +99,8 @@ async def handlers_order_checkout(request):
         return response
 
     except Exception as e:
-        logger.exception("Произошла ошибка при отображении страницы оформления заказа")
+        logger.exception(
+            "Произошла ошибка при отображении страницы оформления заказа")
         return web.json_response({'error': str(e)}, status=500)
 
 
@@ -107,18 +110,20 @@ async def create_payment(order_id, amount):
     """
     payment = Payment.create({
         "amount": {
-            "value": str(amount), 
+            "value": amount_in_kopecks,
             "currency": "RUB"
         },
         "confirmation": {
             "type": "redirect",
-            "return_url": "https://your-site.com/payment-result"  
-        "capture": True,
-        "description": f"Оплата заказа №{order_id}",
-        "metadata": {
-            "order_id": order_id
-        }
-    }, str(uuid.uuid4())})  # Уникальный идентификатор платежа
+            "return_url": "https://your-site.com/payment-result",  # Добавлена запятая
+            "capture": True,
+            "description": f"Оплата заказа №{order_id}",
+            "metadata": {
+                "order_id": order_id
+            }
+        },
+        "idempotence_key": str(uuid4())
+    })
 
     return payment
 
