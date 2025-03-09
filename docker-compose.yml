@@ -1,24 +1,16 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:13
     environment:
-      POSTGRES_DB: ${DB_NAME:-postgres} # Используем переменную окружения или значение по умолчанию
+      POSTGRES_DB: ${DB_NAME:-mydb}
       POSTGRES_USER: ${DB_USER:-user}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data # Исправлено имя тома
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-user} -d ${DB_NAME:-mydb}" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped # Перезапуск контейнера при сбоях
+      - postgres_data:/var/lib/postgresql/data
     networks:
-      - app_network # Подключаем к сети
+      - app_network
 
   admin_panel:
     build:
@@ -32,12 +24,12 @@ services:
       - ./.env
     ports:
       - "8000:8000"
+    volumes:
+      - media_data:/app/media
     depends_on:
-      postgres:
-        condition: service_healthy # Ждем, пока PostgreSQL не станет доступным
-    restart: unless-stopped # Перезапуск контейнера при сбоях
+      - postgres
     networks:
-      - app_network # Подключаем к сети
+      - app_network
 
   bot_project:
     build:
@@ -45,18 +37,18 @@ services:
       dockerfile: Dockerfile
     env_file:
       - ./.env
+    volumes:
+      - media_data:/app/media
     depends_on:
-      postgres:
-        condition: service_healthy # Ждем, пока PostgreSQL не станет доступным
-    restart: unless-stopped # Перезапуск контейнера при сбоях
+      - postgres
     networks:
-      - app_network # Подключаем к сети
+      - app_network
 
 volumes:
   postgres_data:
-    # Определение тома
+  media_data:
+
 
 networks:
   app_network:
-    # Определение сети
     driver: bridge
