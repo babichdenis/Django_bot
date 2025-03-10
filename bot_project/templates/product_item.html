@@ -3,17 +3,19 @@
 {% block title %}{{ product.name }}{% endblock %}
 
 {% block content %}
-<nav aria-label="breadcrumb" class="breadcrumb-container">
-    <ol class="breadcrumb breadcrumb-style">
-        {% for item in breadcrumbs %}
-            {% if item.url %}
-                <li class="breadcrumb-item"><a href="{{ item.url }}" class="breadcrumb-link">{{ item.name }}</a></li>
-            {% else %}
-                <li class="breadcrumb-item active" aria-current="page">{{ item.name }}</li>
-            {% endif %}
-        {% endfor %}
+<nav aria-label="breadcrumb" class="breadcrumb-nav">
+    <ol class="breadcrumb">
+      {% for crumb in breadcrumbs %}
+        <li class="breadcrumb-item {% if loop.last %}active{% endif %}">
+          {% if crumb.url %}
+            <a href="{{ crumb.url }}" class="breadcrumb-link">{{ crumb.name }}</a>
+          {% else %}
+            <span class="breadcrumb-text">{{ crumb.name }}</span>
+          {% endif %}
+        </li>
+      {% endfor %}
     </ol>
-</nav>
+  </nav>
 
     <div class="row">
         <div class="col-md-6 product-image-col">
@@ -87,81 +89,83 @@
     </div>
 </div>
 <style>
-    .breadcrumb-container {
-        margin-bottom: 10px;
-        margin-top: 40px;
-    }
-    
-    .breadcrumb-style {
-        background-color: #f5f5f5;
-        padding: 10px;
-        border-radius: 10px;
-    }
-    
-    .breadcrumb-item + .breadcrumb-item::before {
-        content: "›";
-        font-family: Arial, sans-serif;
-        font-size: 18px;
-        color: #ccc;
-    }
-    
-    .product-image-col {
-        padding: 20px;
-    }
-    
-    .product-image {
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-    
-    .product-info-col {
-        padding: 20px;
-    }
-    
-    .product-info {
-        margin-top: 0;
-    }
-    
-    .quantity-control {
-        margin-bottom: 10px;
-    }
-    
-    .product-specs {
-        list-style: none;
+    .breadcrumb-nav {
+        padding: 0.5rem 1rem;
+        background-color: #f8f9fa; /* Светлый фон */
+        border-radius: 0.25rem;
+        margin-bottom: 1rem;
+      }
+      
+      .breadcrumb {
+        display: flex;
+        flex-wrap: wrap; /* Перенос на новую строку на маленьких экранах */
         padding: 0;
         margin: 0;
-    }
-    
-    .product-specs li {
-        margin-bottom: 5px;
-    }
-    
-    .product-specs li strong {
-        font-weight: bold;
-    }
-    
-    .tab-content {
-        margin-top: 20px;
-    }
-    
-    .tab-pane {
-        padding: 20px;
-    }
-    
-    .tab-pane ul {
         list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-    
-    .tab-pane li {
-        margin-bottom: 10px;
-    }
-    
-    .tab-pane li strong {
-        font-weight: bold;
-    }
-    
+      }
+      
+      .breadcrumb-item {
+        display: flex;
+        align-items: center;
+      }
+      
+      .breadcrumb-item + .breadcrumb-item::before {
+        content: "›"; /* Разделитель между элементами */
+        padding: 0 0.5rem;
+        color: #6c757d; /* Цвет разделителя */
+      }
+      
+      .breadcrumb-item.active {
+        color: #6c757d; /* Цвет активного элемента */
+      }
+      
+      .breadcrumb-link {
+        color: #007bff; /* Цвет ссылки */
+        text-decoration: none;
+      }
+      
+      .breadcrumb-link:hover {
+        text-decoration: underline; /* Подчеркивание при наведении */
+      }
+      
+      .breadcrumb-text {
+        color: #6c757d; /* Цвет текста для текущей страницы */
+      }
+      
+      /* Адаптивность для маленьких экранов */
+      @media (max-width: 576px) {
+        .breadcrumb {
+          font-size: 0.875rem; /* Уменьшаем размер шрифта */
+        }
+      
+        .breadcrumb-item + .breadcrumb-item::before {
+          padding: 0 0.25rem; /* Уменьшаем отступы */
+        }
+      
+        .breadcrumb-link, .breadcrumb-text {
+          white-space: nowrap; /* Запрещаем перенос текста */
+          overflow: hidden;
+          text-overflow: ellipsis; /* Добавляем многоточие при переполнении */
+          max-width: 100px; /* Ограничиваем ширину текста */
+        }
+      }
+        .breadcrumb-container {
+            margin-bottom: 10px;
+            margin-top: 40px;
+        }
+        
+        .breadcrumb-style {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        
+        .breadcrumb-item + .breadcrumb-item::before {
+            content: "›";
+            font-family: Arial, sans-serif;
+            font-size: 18px;
+            color: #ccc;
+        }
 </style>
 {% endblock %}
 

@@ -25,7 +25,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - media_data:/app/media
+      - ./media:/app/media
     depends_on:
       - postgres
     networks:
@@ -37,16 +37,34 @@ services:
       dockerfile: Dockerfile
     env_file:
       - ./.env
+    environment:
+      - YOOMONEY_KEY=${YOOMONEY_KEY}
+      - YOOMONEY_ID=${YOOMONEY_ID}
+    ports:
+      - "8080:8080"
     volumes:
-      - media_data:/app/media
+      - ./media:/app/media
     depends_on:
       - postgres
     networks:
       - app_network
 
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx.conf
+      - ./media:/app/media
+    depends_on:
+      - admin_panel
+      - bot_project
+    networks:
+      - app_network
+
 volumes:
   postgres_data:
-  media_data:
+  media:
 
 
 networks:

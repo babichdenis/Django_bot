@@ -1,4 +1,3 @@
-# main.py
 import asyncio
 import logging
 from pathlib import Path
@@ -22,10 +21,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Определение путей
-BASE_DIR = Path(__file__).resolve().parent.parent  
-MEDIA_DIR = BASE_DIR / "media" 
-TEMPLATES_DIR = BASE_DIR / "bot_project" / "templates" 
-
+BASE_DIR = Path(__file__).resolve().parent
+MEDIA_DIR = BASE_DIR / "media"
+TEMPLATES_DIR = BASE_DIR / "templates"
 
 
 async def main():
@@ -37,7 +35,7 @@ async def main():
         dp = Dispatcher()
 
         # Инициализация базы данных
-        await database.connect() 
+        await database.connect()
         # Инициализация веб-сервера
         app = web.Application()
         setup(app, SimpleCookieStorage())
@@ -50,7 +48,8 @@ async def main():
         # Запуск веб-сервера
         runner = web.AppRunner(app)
         await runner.setup()
-        site = web.TCPSite(runner, config("HOST", default="localhost"), config("PORT", default=8080, cast=int))
+        site = web.TCPSite(runner, config("HOST", default="localhost"), config(
+            "PORT", default=8080, cast=int))
         await site.start()
         logger.info(f"Web server started at {config('HOST')}:{config('PORT')}")
 
@@ -61,7 +60,7 @@ async def main():
     except Exception as e:
         logger.critical(f"Application failed: {e}", exc_info=True)
     finally:
-        await database.pool.close()  
+        await database.pool.close()
         await bot.session.close()
         logger.info("Bot stopped")
 

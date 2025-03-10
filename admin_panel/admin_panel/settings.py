@@ -86,10 +86,9 @@ USE_I18N = True
 USE_TZ = True
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR.parent / 'media'  # Папка media на уровне проекта
+MEDIA_ROOT = '/app/media'
 
 STATIC_URL = '/static/'
-STATIC_ROOT = MEDIA_ROOT / 'static'
-
+STATIC_ROOT = '/app/media/static'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

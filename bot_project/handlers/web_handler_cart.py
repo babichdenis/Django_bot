@@ -17,7 +17,7 @@ from database.queries_orders import (
     update_order_payment_status
 )
 from utils.logger import logger
-from utils.utils import decimal_to_float
+
 
 async def handle_get_cart(request):
     """Обработчик получения корзины."""
@@ -138,7 +138,8 @@ async def handle_update_cart_item(request):
         request_data = await request.json()
         telegram_id = request_data.get("telegram_id")
         product_id = request_data.get("product_id")
-        change = request_data.get("change")  # Изменение количества (например, +1 или -1)
+        # Изменение количества (например, +1 или -1)
+        change = request_data.get("change")
 
         if telegram_id is None or product_id is None or change is None:
             logger.error("Не указан telegram_id, product_id или change")
@@ -231,7 +232,6 @@ async def handle_clear_cart(request):
         }, status=500)
 
 
-
 async def handle_cart_page(request):
     """Обработчик для отображения страницы корзины."""
     try:
@@ -296,7 +296,8 @@ async def create_order(request):
         query = "SELECT id FROM core_telegramuser WHERE telegram_id = $1"
         user_id_row = await request.app['db'].fetch_one(query, telegram_id)
         if not user_id_row:
-            logger.warning(f"Пользователь с telegram_id {telegram_id} не найден")
+            logger.warning(
+                f"Пользователь с telegram_id {telegram_id} не найден")
             return web.json_response({'error': 'User not found'}, status=404)
 
         user_id = user_id_row[0]  # Получаем id пользователя
@@ -312,8 +313,10 @@ async def create_order(request):
         logger.debug(f"Товары в корзине: {cart_items}")
 
         # Создаем заказ
-        total_amount = sum(item['quantity'] * item['price'] for item in cart_items) # Считаем сумму заказа
-        order_id = await create_order_db(user_id, total_amount)  # Передаем user_id и сумму заказа
+        total_amount = sum(item['quantity'] * item['price']
+                           for item in cart_items)  # Считаем сумму заказа
+        # Передаем user_id и сумму заказа
+        order_id = await create_order_db(user_id, total_amount)
         if not order_id:
             logger.error("Не удалось создать заказ")
             return web.json_response({'error': 'Failed to create order'}, status=500)
@@ -323,7 +326,8 @@ async def create_order(request):
         for item in cart_items:
             success = await create_order_item(order_id, item['product_id'], item['quantity'], item['price'])
             if not success:
-                logger.error(f"Не удалось создать элемент заказа для product_id={item['product_id']}")
+                logger.error(
+                    f"Не удалось создать элемент заказа для product_id={item['product_id']}")
                 # Обработка ошибки создания элемента заказа (например, откат транзакции)
                 return web.json_response({'error': 'Failed to create order item'}, status=500)
         logger.debug("Элементы заказа успешно созданы")

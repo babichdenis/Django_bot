@@ -13,11 +13,12 @@ from handlers.web_handler_cart import (
     handle_cart_page
 )
 from handlers.web_handlers_orders import (
-    handlers_create_order, 
-    handlers_order_checkout, 
-    handlers_order_payment, 
+    handlers_create_order,
+    handlers_order_checkout,
+    handlers_order_payment,
     # handlers_order_detail
     handle_yookassa_webhook,
+    payment_result,
 )
 
 
@@ -36,12 +37,12 @@ def setup_web_routes(app: web.Application, media_dir: str):
         web.post("/update-cart-item", handle_update_cart_item),
         web.post("/clear-cart", handle_clear_cart),
         web.static("/media", media_dir),
-        # Заказ 
+        # Заказ
         web.post('/order-create', handlers_create_order),
         web.get('/order-checkout/{order_id}', handlers_order_checkout),
         # Оплата
         web.post('/order-payment/{order_id}', handlers_order_payment),
-        # web.get('/order-detail/{order_id}', handlers_order_detail),
+        web.get('/payment-result', payment_result),
         web.post('/yookassa-webhook', handle_yookassa_webhook),
         # web.post('/tinkoff-webhook', handle_tinkoff_webhook),
     ])

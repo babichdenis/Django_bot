@@ -1,3 +1,4 @@
+import uuid
 from aiohttp import web
 import aiohttp_jinja2 as aioj
 from database.queries_orders import (
@@ -9,12 +10,16 @@ from database.queries_orders import (
     update_order_status,
     update_order_payment_status,
 )
+from decouple import config
 from utils.logger import logger
 from database.db import database
 from utils.utils import generate_csrf_token
 from aiohttp_session import get_session
-from yookassa import Payment
-import uuid
+from yookassa import Payment, Configuration
+
+
+Configuration.account_id = config("YOOMONEY_ID")
+Configuration.secret_key = config("YOOMONEY_KEY")
 
 
 async def handlers_create_order(request):
@@ -91,10 +96,8 @@ async def handlers_order_checkout(request):
             'csrf_token': csrf_token,  # Передача токена в шаблон
         }
         logger.debug(f"Контекст для шаблона: {context}")
-
-        # Отображение шаблона
-        template = 'order_checkout.html'
-        response = aioj.render_template(template, request, context)
+        response = aioj.render_template(
+            'order_checkout.html', request, context)
         logger.info("Страница оформления заказа успешно отображена")
         return response
 
@@ -108,22 +111,25 @@ async def create_payment(order_id, amount):
     """
     Создает платеж в ЮKassa.
     """
+
     payment = Payment.create({
         "amount": {
-            "value": amount_in_kopecks,
+            "value": amount,
             "currency": "RUB"
+        },
+        "payment_method_data": {
+            "type": "bank_card"
         },
         "confirmation": {
             "type": "redirect",
-            "return_url": "https://your-site.com/payment-result",  # Добавлена запятая
-            "capture": True,
-            "description": f"Оплата заказа №{order_id}",
-            "metadata": {
-                "order_id": order_id
-            }
+            "return_url": "https://your-site.com/payment-result"
         },
-        "idempotence_key": str(uuid4())
-    })
+        "capture": True,
+        "description": f"Оплата заказа №{order_id}",
+        "metadata": {
+            "order_id": order_id
+        }
+    }, uuid.uuid4())
 
     return payment
 
@@ -142,12 +148,13 @@ async def handlers_order_payment(request):
         # Получение заказа
         order_id = int(request.match_info['order_id'])
         order = await get_order_by_id(order_id)
+
         if not order:
             logger.warning(f"Заказ с order_id {order_id} не найден")
             return web.json_response({'error': 'Order not found'}, status=404)
-
+        order_total = int(order['total'])
         # Создание платежа
-        payment = await create_payment(order.id, order.total)
+        payment = await create_payment(order_id, order_total)
         confirmation_url = payment.confirmation.confirmation_url
 
         # Перенаправление пользователя на страницу оплаты
@@ -181,8 +188,15 @@ async def update_order_status(order_id, status):
     """
     Обновляет статус заказа в базе данных.
     """
-    pass
-    logger.info(f"Обновление статуса заказа {order_id} на {status}")
+    try:
+        # Обновляем статус заказа
+        await update_order_payment_status(order_id, status)
+
+        # Логируем изменение статуса
+        logger.info(f"Статус заказа {order_id} обновлен на {status}")
+    except Exception as e:
+        logger.error(f"Ошибка при обновлении статуса заказа {order_id}: {e}")
+        raise
 
 
 async def payment_result(request):
@@ -191,14 +205,21 @@ async def payment_result(request):
         payment_id = request.query.get('payment_id')
         order_id = request.query.get('order_id')
 
+        # Получаем информацию о платеже
         payment = Payment.find_one(payment_id)
         payment_success = payment.status == 'succeeded'
 
+        # Получаем информацию о заказе
+        order = await get_order_by_id(order_id)
+
+        # Подготавливаем контекст для шаблона
         context = {
             'payment_success': payment_success,
-            'order': await get_order_by_id(order_id),
+            'order': order,
         }
-        return web.Response(text=render_template('payment_result.html', context))
+
+        # Отображаем шаблон
+        return aioj.render_template('payment_result.html', request, context)
     except Exception as e:
         logger.exception("Ошибка при отображении результата платежа")
         return web.json_response({'error': str(e)}, status=500)

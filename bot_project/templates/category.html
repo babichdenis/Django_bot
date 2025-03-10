@@ -4,16 +4,19 @@
 
 {% block content %}
 
-<nav aria-label="breadcrumb" class="breadcrumb-container">
+<nav aria-label="breadcrumb" class="breadcrumb-nav" style="margin-top:20px">
     <ol class="breadcrumb">
-
-        {% for crumb in breadcrumbs %}
-        <li class="breadcrumb-item">
+      {% for crumb in breadcrumbs %}
+        <li class="breadcrumb-item {% if loop.last %}active{% endif %}">
+          {% if crumb.url %}
             <a href="{{ crumb.url }}" class="breadcrumb-link">{{ crumb.name }}</a>
+          {% else %}
+            <span class="breadcrumb-text">{{ crumb.name }}</span>
+          {% endif %}
         </li>
-        {% endfor %}
+      {% endfor %}
     </ol>
-</nav>
+  </nav>
 
 <!-- Заголовок и описание категории -->
 <div class="category-header">
@@ -112,6 +115,67 @@
 
 
 <style>
+    /* Основные стили для breadcrumbs */
+.breadcrumb-nav {
+    padding: 0.5rem 1rem;
+    background-color: #f8f9fa; /* Светлый фон */
+    border-radius: 0.25rem;
+    margin-bottom: 1rem;
+  }
+  
+  .breadcrumb {
+    display: flex;
+    flex-wrap: wrap; /* Перенос на новую строку на маленьких экранах */
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+  
+  .breadcrumb-item {
+    display: flex;
+    align-items: center;
+  }
+  
+  .breadcrumb-item + .breadcrumb-item::before {
+    content: "›"; /* Разделитель между элементами */
+    padding: 0 0.5rem;
+    color: #6c757d; /* Цвет разделителя */
+  }
+  
+  .breadcrumb-item.active {
+    color: #6c757d; /* Цвет активного элемента */
+  }
+  
+  .breadcrumb-link {
+    color: #007bff; /* Цвет ссылки */
+    text-decoration: none;
+  }
+  
+  .breadcrumb-link:hover {
+    text-decoration: underline; /* Подчеркивание при наведении */
+  }
+  
+  .breadcrumb-text {
+    color: #6c757d; /* Цвет текста для текущей страницы */
+  }
+  
+  /* Адаптивность для маленьких экранов */
+  @media (max-width: 576px) {
+    .breadcrumb {
+      font-size: 0.875rem; /* Уменьшаем размер шрифта */
+    }
+  
+    .breadcrumb-item + .breadcrumb-item::before {
+      padding: 0 0.25rem; /* Уменьшаем отступы */
+    }
+  
+    .breadcrumb-link, .breadcrumb-text {
+      white-space: nowrap; /* Запрещаем перенос текста */
+      overflow: hidden;
+      text-overflow: ellipsis; /* Добавляем многоточие при переполнении */
+      max-width: 100px; /* Ограничиваем ширину текста */
+    }
+  }
     .breadcrumb-container {
         margin-bottom: 10px;
         margin-top: 40px;

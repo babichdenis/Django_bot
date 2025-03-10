@@ -1,28 +1,25 @@
+import secrets
 from aiohttp import web
 from .logger import logger
-from decimal import Decimal
-
-async def handle_error(error_message, status=500):
-    """Логирует ошибку и возвращает HTTP-ответ."""
-    logger.error(error_message)
-    return web.Response(text="Internal Server Error", status=status)
+from functools import wraps
 
 
-def decimal_to_float(data):
-    """Преобразует Decimal в float для JSON-сериализации."""
-    if isinstance(data, dict):
-        return {key: decimal_to_float(value) for key, value in data.items()}
-    elif isinstance(data, list):
-        return [decimal_to_float(item) for item in data]
-    elif isinstance(data, Decimal):
-        return float(data) 
-    return data
+def handle_errors(func):
+    @wraps(func)
+    async def wrapper(request, *args, **kwargs):
+        try:
+            return await func(request, *args, **kwargs)
+        except ValueError as e:
+            logger.error(f"ValueError in {func.__name__}: {e}")
+            return web.Response(text="Invalid request data", status=400)
+        except Exception as e:
+            logger.error(f"Error in {func.__name__}: {e}", exc_info=True)
+            return web.Response(text="Internal Server Error", status=500)
+    return wrapper
 
-
-import secrets
 
 def generate_csrf_token():
     """
     Генерирует случайный CSRF-токен.
     """
-    return secrets.token_hex(16) 
+    return secrets.token_hex(16)
